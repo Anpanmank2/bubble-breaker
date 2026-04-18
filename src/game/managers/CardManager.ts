@@ -1,5 +1,5 @@
 import { GameState, CANVAS_W, addParticles, addFloatingText } from "../state/GameState";
-import { Card, RANK_VALUES } from "../hand/constants";
+import { Card } from "../hand/constants";
 import { getRealtimePower } from "../hand/getRealtimePower";
 import { randomCardForStage } from "../hand/stagePool";
 
@@ -8,7 +8,7 @@ export type OnCollectedChange = (cards: Card[]) => void;
 export function spawnScheduledCard(g: GameState) {
   const dropInterval = Math.floor(g.collectDuration / (g.maxCardDrops + 1));
   if (g.stageTimer % dropInterval === 0 && g.cardDropCount < g.maxCardDrops) {
-    const card = randomCardForStage(g.stageNum, g.cfg.junkRate);
+    const card = randomCardForStage(g.stageNum);
     g.cards.push({
       x: CANVAS_W + 10,
       y: 50 + Math.random() * (720 - 200),
@@ -41,23 +41,11 @@ export function updateCards(g: GameState, onChange: OnCollectedChange) {
       if (g.collectedCards.length < 5) {
         g.collectedCards.push(c.card);
         onChange([...g.collectedCards]);
-        const isJunk = c.card.rank === "8" || c.card.rank === "9";
-        addFloatingText(g, c.x, c.y - 15, `${c.card.rank}${c.card.suit}`, isJunk ? "#ff6b6b" : "#4ecdc4");
-        if (isJunk) g.player.flash = 15;
+        addFloatingText(g, c.x, c.y - 15, `${c.card.rank}${c.card.suit}`, "#4ecdc4");
       } else {
-        let weakIdx = 0;
-        let weakVal = RANK_VALUES[g.collectedCards[0].rank];
-        g.collectedCards.forEach((cc, i) => {
-          if (RANK_VALUES[cc.rank] < weakVal) { weakVal = RANK_VALUES[cc.rank]; weakIdx = i; }
-        });
-        if (RANK_VALUES[c.card.rank] > weakVal) {
-          const old = g.collectedCards[weakIdx];
-          g.collectedCards[weakIdx] = c.card;
-          onChange([...g.collectedCards]);
-          addFloatingText(g, c.x, c.y - 15, `${c.card.rank}${c.card.suit} → ${old.rank}${old.suit}`, "#ffd93d");
-        } else {
-          addFloatingText(g, c.x, c.y - 15, "SKIP", "#888");
-        }
+        // v2: 入替禁止 (Owner decision 2026-04-18 / Markov 崩壊回避)
+        // 5 枚埋まったら以降のカードは無視
+        addFloatingText(g, c.x, c.y - 15, "FULL", "#888");
       }
 
       const newPower = getRealtimePower(g.collectedCards);

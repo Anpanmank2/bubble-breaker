@@ -19,8 +19,8 @@ describe("totalCardValue — spec §10.4 attack formula foundation", () => {
     expect(v).toBe(70);
   });
 
-  it("8 9 = 10 + 11 = 21", () => {
-    expect(totalCardValue([c("8", "♠"), c("9", "♥")])).toBe(21);
+  it("T J = 12 + 13 = 25", () => {
+    expect(totalCardValue([c("T", "♠"), c("J", "♥")])).toBe(25);
   });
 
   it("single A = 16", () => {

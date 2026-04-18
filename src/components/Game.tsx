@@ -136,7 +136,6 @@ export default function Game() {
       g.player.y = Math.max(20, Math.min(CANVAS_H - 100, g.player.y));
 
       if (g.player.invincible > 0) g.player.invincible--;
-      if (g.player.flash > 0) g.player.flash--;
       if (g.shakeDuration > 0) g.shakeDuration--;
 
       // Auto shoot
@@ -179,7 +178,7 @@ export default function Game() {
             const forced = buildForcedHand(forcedKey);
             if (forced) cards = forced;
           } else {
-            while (cards.length < 5) cards.push(randomCardForStage(g.stageNum, 0.3));
+            while (cards.length < 5) cards.push(randomCardForStage(g.stageNum));
           }
           const result = evaluateHand(cards);
           const val = totalCardValue(cards);

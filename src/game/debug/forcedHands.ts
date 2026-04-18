@@ -1,12 +1,16 @@
 import { Card } from "../hand/constants";
 
-export type ForcedHandKey = "royal" | "straightflush" | "four" | "fullhouse" | "flush" | "straight" | null;
+// v2 (2026-04-18): 5 ランク化で StraightFlush = RoyalFlush / Flush = RoyalFlush と等価
+// `straightflush` / `flush` forced key を廃止（Owner 決定）。既存 URL は `royal` に統合
+export type ForcedHandKey = "royal" | "four" | "fullhouse" | "straight" | null;
 
 export function readForcedHand(search: string): ForcedHandKey {
   const params = new URLSearchParams(search);
   const v = params.get("test");
   if (!v) return null;
-  const allowed: ForcedHandKey[] = ["royal", "straightflush", "four", "fullhouse", "flush", "straight"];
+  // v2: `straightflush` / `flush` の旧 URL を `royal` にフォールバック（運営台本互換用）
+  if (v === "straightflush" || v === "flush") return "royal";
+  const allowed: ForcedHandKey[] = ["royal", "four", "fullhouse", "straight"];
   return allowed.includes(v as ForcedHandKey) ? (v as ForcedHandKey) : null;
 }
 
@@ -40,14 +44,6 @@ export function buildForcedHand(key: ForcedHandKey): Card[] | null {
         { rank: "K", suit: "♠" },
         { rank: "A", suit: "♠" },
       ];
-    case "straightflush":
-      return [
-        { rank: "8", suit: "♥" },
-        { rank: "9", suit: "♥" },
-        { rank: "T", suit: "♥" },
-        { rank: "J", suit: "♥" },
-        { rank: "Q", suit: "♥" },
-      ];
     case "four":
       return [
         { rank: "A", suit: "♠" },
@@ -63,14 +59,6 @@ export function buildForcedHand(key: ForcedHandKey): Card[] | null {
         { rank: "A", suit: "♦" },
         { rank: "K", suit: "♣" },
         { rank: "K", suit: "♠" },
-      ];
-    case "flush":
-      return [
-        { rank: "8", suit: "♠" },
-        { rank: "T", suit: "♠" },
-        { rank: "Q", suit: "♠" },
-        { rank: "K", suit: "♠" },
-        { rank: "A", suit: "♠" },
       ];
     case "straight":
       return [

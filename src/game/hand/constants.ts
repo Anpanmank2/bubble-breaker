@@ -1,15 +1,15 @@
 export const SUITS = ["♠", "♥", "♦", "♣"] as const;
 export type Suit = (typeof SUITS)[number];
 
-export const RANKS = ["8", "9", "T", "J", "Q", "K", "A"] as const;
+export const RANKS = ["T", "J", "Q", "K", "A"] as const;
 export type Rank = (typeof RANKS)[number];
 
 export const RANK_VALUES: Record<Rank, number> = {
-  "8": 10, "9": 11, "T": 12, "J": 13, "Q": 14, "K": 15, "A": 16,
+  "T": 12, "J": 13, "Q": 14, "K": 15, "A": 16,
 };
 
 export const RANK_ORDER: Record<Rank, number> = {
-  "8": 0, "9": 1, "T": 2, "J": 3, "Q": 4, "K": 5, "A": 6,
+  "T": 0, "J": 1, "Q": 2, "K": 3, "A": 4,
 };
 
 export const SUIT_COLORS: Record<Suit, string> = {
@@ -45,9 +45,9 @@ export const HAND_MULTIPLIERS: Record<HandName, number> = {
   ROYAL_FLUSH: 99,
   STRAIGHT_FLUSH: 8.0,
   FOUR_KIND: 5.0,
+  STRAIGHT: 4.5,
   FULL_HOUSE: 4.0,
   FLUSH: 3.5,
-  STRAIGHT: 3.0,
   THREE_KIND: 2.0,
   TWO_PAIR: 1.5,
   ONE_PAIR: 1.2,

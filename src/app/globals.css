@@ -117,7 +117,6 @@ html, body {
   animation: cardFlip 0.3s ease both;
 }
 .card-face.live { border: 2px solid var(--cyan); }
-.card-face.junk { border: 2px solid #ff6b6b; }
 .card-face.royal-card { border: 2px solid var(--gold); box-shadow: 0 0 15px rgba(255,215,0,0.5); }
 .card-rank { font-size: 22px; font-weight: bold; }
 .card-suit { font-size: 18px; }

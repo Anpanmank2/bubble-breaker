@@ -56,15 +56,14 @@ export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: numbe
 
   // Cards on field
   g.cards.forEach((c) => {
-    const isJunk = c.card.rank === "8" || c.card.rank === "9";
     ctx.save();
     ctx.translate(c.x, c.y);
     ctx.globalAlpha = c.glow;
-    ctx.shadowColor = isJunk ? "#ff6b6b" : "#4ecdc4";
+    ctx.shadowColor = "#4ecdc4";
     ctx.shadowBlur = 12;
     ctx.fillStyle = "#fff";
     ctx.fillRect(-CARD_SIZE / 2, -CARD_SIZE / 2, CARD_SIZE, CARD_SIZE * 1.3);
-    ctx.strokeStyle = isJunk ? "#ff6b6b" : "#2a9d8f";
+    ctx.strokeStyle = "#2a9d8f";
     ctx.lineWidth = 1.5;
     ctx.strokeRect(-CARD_SIZE / 2, -CARD_SIZE / 2, CARD_SIZE, CARD_SIZE * 1.3);
     ctx.shadowBlur = 0;
@@ -144,7 +143,7 @@ export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: numbe
   }
   ctx.beginPath();
   ctx.arc(0, 0, PLAYER_SIZE / 2, 0, Math.PI * 2);
-  ctx.fillStyle = g.player.flash > 0 ? "#ff6b6b" : "#e8e8e8";
+  ctx.fillStyle = "#e8e8e8";
   ctx.fill();
   ctx.strokeStyle = "#4ecdc4";
   ctx.lineWidth = 3;

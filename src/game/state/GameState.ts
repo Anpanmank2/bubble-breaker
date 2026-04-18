@@ -12,7 +12,6 @@ export type Player = {
   x: number; y: number;
   shooting: boolean;
   invincible: number;
-  flash: number;
 };
 
 export type Bullet = {
@@ -99,7 +98,7 @@ export type GameState = {
 
 export function createGameState(stageNum: number, cfg: StageConfig): GameState {
   return {
-    player: { x: 80, y: CANVAS_H / 2, shooting: true, invincible: 0, flash: 0 },
+    player: { x: 80, y: CANVAS_H / 2, shooting: true, invincible: 0 },
     bullets: [],
     enemies: [],
     enemyBullets: [],

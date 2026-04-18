@@ -8,10 +8,17 @@ describe("readForcedHand", () => {
   it("returns the matching key", () => {
     expect(readForcedHand("?test=royal")).toBe("royal");
     expect(readForcedHand("?test=four")).toBe("four");
+    expect(readForcedHand("?test=fullhouse")).toBe("fullhouse");
+    expect(readForcedHand("?test=straight")).toBe("straight");
   });
   it("returns null for unknown or missing", () => {
     expect(readForcedHand("")).toBeNull();
     expect(readForcedHand("?test=bogus")).toBeNull();
+  });
+  it("v2 migration: straightflush / flush fallback to royal", () => {
+    // 5 ランク環境では SF = RF なので旧 URL を royal に統合
+    expect(readForcedHand("?test=straightflush")).toBe("royal");
+    expect(readForcedHand("?test=flush")).toBe("royal");
   });
 });
 
@@ -49,8 +56,12 @@ describe("buildForcedHand produces hands that match expected evaluation", () => 
     const h = buildForcedHand("four")!;
     expect(evaluateHand(h).name).toBe("FOUR_KIND");
   });
-  it("flush → FLUSH", () => {
-    const h = buildForcedHand("flush")!;
-    expect(evaluateHand(h).name).toBe("FLUSH");
+  it("fullhouse → FULL_HOUSE", () => {
+    const h = buildForcedHand("fullhouse")!;
+    expect(evaluateHand(h).name).toBe("FULL_HOUSE");
+  });
+  it("straight → STRAIGHT", () => {
+    const h = buildForcedHand("straight")!;
+    expect(evaluateHand(h).name).toBe("STRAIGHT");
   });
 });

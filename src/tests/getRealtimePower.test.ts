@@ -40,7 +40,7 @@ describe("getRealtimePower — labels", () => {
   });
 
   it("+FLUSH DRAW (4+ same suit)", () => {
-    const p = getRealtimePower([c("8", "♠"), c("9", "♠"), c("T", "♠"), c("J", "♠")]);
+    const p = getRealtimePower([c("T", "♠"), c("J", "♠"), c("Q", "♠"), c("K", "♠")]);
     expect(p.label).toContain("+FLUSH DRAW");
   });
 });

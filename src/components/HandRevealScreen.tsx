@@ -21,7 +21,7 @@ export function HandRevealScreen({ stageNum, cards, handName, handColor, mult, v
         {cards.map((c, i) => (
           <div
             key={i}
-            className={`card-face ${c.rank === "8" || c.rank === "9" ? "junk" : "live"}`}
+            className="card-face live"
             style={{ animationDelay: `${i * 0.15}s` }}
           >
             <div className={`card-rank ${c.suit === "♥" || c.suit === "♦" ? "red" : "black"}`}>{c.rank}</div>
