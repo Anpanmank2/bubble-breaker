@@ -8,7 +8,7 @@ import {
 } from "@/game/state/GameState";
 import { getStageConfig, DEATH_MESSAGES, STAGE_NAMES } from "@/game/stages/stageConfig";
 import { spawnEnemy, updateEnemies } from "@/game/managers/EnemyManager";
-import { ensureBoss, updateBoss } from "@/game/managers/BossManager";
+import { ensureBoss, updateBoss, updatePhaseTransition } from "@/game/managers/BossManager";
 import { updateBullets } from "@/game/managers/BulletManager";
 import { spawnScheduledCard, updateCards } from "@/game/managers/CardManager";
 import { updateParticles } from "@/game/engine/ParticleSystem";
@@ -205,6 +205,7 @@ export default function Game() {
         ensureBoss(g);
         updateBoss(g);
       }
+      updatePhaseTransition(g);
 
       if (g.phase === "collect") {
         updateEnemies(g);

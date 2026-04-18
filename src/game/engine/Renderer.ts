@@ -2,6 +2,7 @@ import { GameState, CANVAS_W, CANVAS_H, CARD_SIZE, PLAYER_SIZE } from "../state/
 import { getEnemyColor, getEnemyLabel } from "../stages/enemyStats";
 import { evaluateHand } from "../hand/evaluateHand";
 import { HAND_COLORS, HAND_NAMES } from "../hand/constants";
+import { STACK_BAR_COLORS, PHASE_TRANSITION_TEXT } from "../characters/constants";
 
 export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: number) {
   ctx.save();
@@ -218,5 +219,103 @@ export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: numbe
     ctx.fillText(`${HAND_NAMES[r.name]} (×${r.mult})`, CANVAS_W / 2, CANVAS_H - 4);
   }
 
+  // v2 Sprint 2: CHIP LEADER 戦スタックバー HUD
+  if (g.stageNum === 4 && g.phase === "boss" && g.boss?.stackBB !== undefined && g.playerStackBB !== undefined) {
+    drawStackBar(g, ctx);
+  }
+
+  // v2 Sprint 2: Phase 転換テキスト
+  if (g.phaseTransition) {
+    drawPhaseTransition(g, ctx);
+  }
+
+  ctx.restore();
+}
+
+function drawStackBar(g: GameState, ctx: CanvasRenderingContext2D) {
+  if (!g.boss || g.playerStackBB === undefined || g.boss.stackBB === undefined) return;
+  const totalBB = 120;
+  const barX = 70;
+  const barW = CANVAS_W - 90;
+  const barH = 10;
+  const yPlayer = 60;
+  const yBoss = 74;
+
+  // Player bar
+  ctx.fillStyle = STACK_BAR_COLORS.playerBg;
+  ctx.fillRect(barX, yPlayer, barW, barH);
+  const playerRatio = Math.min(1, g.playerStackBB / totalBB);
+  const isShort = g.playerStackBB < 40;
+  ctx.fillStyle = isShort ? STACK_BAR_COLORS.playerLow : STACK_BAR_COLORS.playerFill;
+  ctx.fillRect(barX, yPlayer, barW * playerRatio, barH);
+
+  // Boss bar
+  ctx.fillStyle = STACK_BAR_COLORS.playerBg;
+  ctx.fillRect(barX, yBoss, barW, barH);
+  const bossRatio = Math.min(1, g.boss.stackBB / totalBB);
+  const bossLeading = g.boss.stackBB > g.playerStackBB;
+  ctx.fillStyle = bossLeading ? STACK_BAR_COLORS.bossLead : STACK_BAR_COLORS.bossFill;
+  ctx.fillRect(barX, yBoss, barW * bossRatio, barH);
+
+  // Labels
+  ctx.fillStyle = STACK_BAR_COLORS.bbText;
+  ctx.font = "bold 10px monospace";
+  ctx.textAlign = "left";
+  ctx.fillText("YOU", 10, yPlayer + 8);
+  ctx.fillText("BOSS", 10, yBoss + 8);
+  ctx.textAlign = "right";
+  ctx.fillText(`${Math.round(g.playerStackBB)}BB`, CANVAS_W - 10, yPlayer + 8);
+  ctx.fillText(`${Math.round(g.boss.stackBB)}BB`, CANVAS_W - 10, yBoss + 8);
+
+  // SHORT STACK 警告 (Phase 1 絶望感)
+  if (isShort && g.boss.chipLeaderPhase === 1) {
+    const blink = Math.floor(g.stageTimer / 20) % 2 === 0;
+    if (blink) {
+      ctx.fillStyle = "#ff4444";
+      ctx.font = "bold 9px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("⚠ SHORT STACK ⚠", CANVAS_W / 2, yPlayer + 8);
+    }
+  }
+}
+
+function drawPhaseTransition(g: GameState, ctx: CanvasRenderingContext2D) {
+  if (!g.phaseTransition) return;
+  const t = g.phaseTransition;
+  const progress = 1 - t.life / t.maxLife; // 0→1
+  const config = PHASE_TRANSITION_TEXT[t.kind];
+
+  // 画面フラッシュ (0-200ms = progress 0-0.15 程度)
+  const flashProgress = Math.max(0, 1 - progress * 6);
+  if (flashProgress > 0) {
+    ctx.save();
+    ctx.globalAlpha = flashProgress * 0.4;
+    ctx.fillStyle = t.kind === "CHIP_LEAD_CHANGE" ? "#ff00ff" : "#ffffff";
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    ctx.restore();
+  }
+
+  // テキストのスケール: 0→1.3→1.0 の punch-in
+  let scale = 1.0;
+  if (progress < 0.15) scale = progress / 0.15 * 1.3;
+  else if (progress < 0.25) scale = 1.3 - (progress - 0.15) * 3;
+  else scale = 1.0;
+
+  // テキストの alpha: 0→1 (punch-in) → 1 (hold) → 0 (fadeout)
+  let alpha = 1.0;
+  if (progress < 0.15) alpha = progress / 0.15;
+  else if (progress > 0.7) alpha = Math.max(0, (1 - progress) / 0.3);
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(CANVAS_W / 2, CANVAS_H / 2);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = config.color;
+  ctx.font = `bold ${config.fontSize}px monospace`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.shadowColor = config.color;
+  ctx.shadowBlur = 20;
+  ctx.fillText(config.text, 0, 0);
   ctx.restore();
 }

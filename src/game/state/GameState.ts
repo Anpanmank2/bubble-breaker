@@ -52,6 +52,11 @@ export type FloatingText = {
   life: number; maxLife: number;
 };
 
+// v2 Sprint 2
+export type BossPhase = 1 | 2 | 3;
+export type BossFaceState = "calm" | "sweat" | "panic";
+export type BossAccessoryState = "intact" | "cracked" | "broken";
+
 export type Boss = {
   x: number; y: number;
   w: number; h: number;
@@ -59,6 +64,23 @@ export type Boss = {
   shootTimer: number;
   sinOffset: number;
   phase: number;
+  // v2 Sprint 2: CHIP LEADER 戦用
+  stackBB?: number;
+  chipLeaderPhase?: BossPhase;
+  oneOuterUsed?: boolean;
+  faceState?: BossFaceState;
+  accessoryState?: BossAccessoryState;
+  sunglassesY?: number;
+  sunglassesRotation?: number;
+  sunglassesAlpha?: number;
+};
+
+export type PhaseTransitionKind = "EVEN_STACK" | "CHIP_LEAD_CHANGE" | "ALL_IN_CHIP" | "ALL_IN_3BET";
+
+export type PhaseTransition = {
+  kind: PhaseTransitionKind;
+  life: number;
+  maxLife: number;
 };
 
 export type GamePhase = "collect" | "transition" | "boss";
@@ -94,6 +116,9 @@ export type GameState = {
   handValue?: number;
   handPower?: number;
   transitionTimer?: number;
+  // v2 Sprint 2
+  playerStackBB?: number;
+  phaseTransition?: PhaseTransition;
 };
 
 export function createGameState(stageNum: number, cfg: StageConfig): GameState {
