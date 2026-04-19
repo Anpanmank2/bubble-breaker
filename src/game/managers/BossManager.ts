@@ -32,10 +32,14 @@ function getShootParams(g: GameState, hpRatio: number): ShootParams {
 }
 
 // v2 Sprint 2 Commit 2: bossHpScale URL param で boss HP を倍率調整 (QA verification 用)
-// Commit 3: production 環境では無効化 (ランキング/スコア操作防止)
+// Commit 3 + audit2-refinement: production 環境では無効化 (ランキング/スコア操作防止)
+// Next.js は process.env.NODE_ENV を build 時に文字列リテラルへ静的置換するため
+// `typeof process` ガード無しで Turbopack の dead-code elimination が効く
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
 function readBossHpScale(): number {
   if (typeof window === "undefined") return 1.0;
-  if (typeof process !== "undefined" && process.env?.NODE_ENV === "production") return 1.0;
+  if (IS_PRODUCTION) return 1.0;
   const v = new URLSearchParams(window.location.search).get("bossHpScale");
   if (v === null) return 1.0;
   const n = parseFloat(v);

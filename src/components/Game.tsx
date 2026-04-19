@@ -31,10 +31,11 @@ import { RoyalClearScreen } from "./RoyalClearScreen";
 import { DebugPanel } from "./DebugPanel";
 import { localStore } from "@/lib/storage/local";
 
-// v2 Sprint 2 Audit 2 fix: production build では debug export 全体を dead-code 化
-// Next.js は process.env.NODE_ENV を build 時に静的置換するため、本定数経由の
-// gate は production bundle から完全消失する
-const IS_PRODUCTION = typeof process !== "undefined" && process.env?.NODE_ENV === "production";
+// v2 Sprint 2 Audit 2 refinement: Next.js は `process.env.NODE_ENV` を build 時に
+// 文字列リテラルへ静的置換する。`typeof process` は runtime check になり Turbopack の
+// dead-code elimination を阻害したため除去 (Phase 4 PM Push Gate で grep 確認時、
+// production bundle に __gs symbol が残存していた問題)。
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 type Screen = "title" | "playing" | "handReveal" | "boss" | "clear" | "gameover" | "royalClear";
 
