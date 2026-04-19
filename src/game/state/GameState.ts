@@ -20,7 +20,19 @@ export type Bullet = {
   dmg: number; size: number; color: string;
 };
 
-export type EnemyBullet = { x: number; y: number; vx: number; vy: number };
+// v2 Sprint 2 Commit 4: ドンクチップ弾 ($5/$25/$100) + 重力対応
+export type EnemyBulletStyle = "normal" | "chip";
+export type ChipValue = 5 | 25 | 100;
+
+export type EnemyBullet = {
+  x: number; y: number;
+  vx: number; vy: number;
+  style?: EnemyBulletStyle;
+  chipValue?: ChipValue;
+  gravity?: number;
+  rotation?: number;
+  rotationSpeed?: number;
+};
 
 export type Enemy = {
   x: number; y: number;
@@ -30,6 +42,11 @@ export type Enemy = {
   shootTimer: number;
   w: number; h: number;
   sinOffset: number; sinAmp: number;
+  // v2 Sprint 2 Commit 4: セリフ吹き出し
+  dialogText?: string;
+  dialogLife?: number;
+  dialogMaxLife?: number;
+  hpHalfTriggered?: boolean;
 };
 
 export type FieldCard = {

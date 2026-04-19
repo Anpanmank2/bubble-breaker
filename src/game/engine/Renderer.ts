@@ -17,6 +17,9 @@ export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: numbe
   ctx.fillStyle = g.cfg.bg;
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
+  // v2 Sprint 2 Commit 4: ステージ別背景装飾
+  drawStageDecor(ctx, g.stageNum, g.stageTimer);
+
   // Grid
   ctx.strokeStyle = "rgba(255,255,255,0.04)";
   ctx.lineWidth = 1;
@@ -93,6 +96,10 @@ export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: numbe
     ctx.font = "bold 7px monospace";
     ctx.textAlign = "center";
     ctx.fillText(getEnemyLabel(e.type), e.x, e.y + 3);
+    // v2 Sprint 2 Commit 4: ザコ敵セリフ吹き出し
+    if (e.dialogText && e.dialogLife && e.dialogMaxLife) {
+      drawEnemyDialog(ctx, e.x, e.y - e.h / 2 - 18, e.dialogText, e.dialogLife, e.dialogMaxLife, getEnemyColor(e.type));
+    }
   });
 
   // Boss
@@ -135,11 +142,15 @@ export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: numbe
   });
 
   // Enemy bullets
-  ctx.fillStyle = "#ff6b6b";
   g.enemyBullets.forEach((b) => {
-    ctx.beginPath();
-    ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
-    ctx.fill();
+    if (b.style === "chip") {
+      drawChipBullet(ctx, b);
+    } else {
+      ctx.fillStyle = "#ff6b6b";
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
   });
 
   // Player
@@ -244,6 +255,9 @@ export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: numbe
   if (g.oneOuterSequence) {
     drawOneOuterOverlay(g, ctx);
   }
+
+  // v2 Sprint 2 Commit 4: Stage 別フラッシュ (Stage 3 赤フラッシュ)
+  drawStageFlash(ctx, g.stageNum, g.stageTimer);
 
   ctx.restore();
 }
@@ -398,4 +412,164 @@ function drawPhaseTransition(g: GameState, ctx: CanvasRenderingContext2D) {
   ctx.shadowBlur = 20;
   ctx.fillText(config.text, 0, 0);
   ctx.restore();
+}
+
+// v2 Sprint 2 Commit 4: ドンクチップ弾描画 ($5 白 / $25 赤 / $100 緑 + 回転)
+function drawChipBullet(ctx: CanvasRenderingContext2D, b: { x: number; y: number; chipValue?: number; rotation?: number }) {
+  const value = b.chipValue ?? 5;
+  const color = value === 100 ? "#4caf50" : value === 25 ? "#e63946" : "#f5f5f5";
+  const rim = value === 100 ? "#2e7d32" : value === 25 ? "#8b0000" : "#9e9e9e";
+  const r = value === 100 ? 7 : 6;
+  ctx.save();
+  ctx.translate(b.x, b.y);
+  if (b.rotation) ctx.rotate(b.rotation);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = rim;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // 縞模様 (チップ感)
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a) * r * 0.6, Math.sin(a) * r * 0.6);
+    ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// v2 Sprint 2 Commit 4: ザコ敵セリフ吹き出し (背景角丸矩形 + テキスト)
+function drawEnemyDialog(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number,
+  text: string,
+  life: number, maxLife: number,
+  borderColor: string,
+) {
+  const ratio = life / maxLife;
+  // fadeIn 0-10% / hold 10-85% / fadeOut 85-100%
+  let alpha = 1;
+  if (ratio > 0.9) alpha = (1 - ratio) / 0.1;
+  else if (ratio < 0.15) alpha = Math.max(0, 1 - (0.15 - ratio) / 0.15);
+  alpha = Math.max(0, Math.min(1, alpha));
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.font = "bold 10px 'Noto Sans JP', monospace";
+  const metrics = ctx.measureText(text);
+  const padX = 4;
+  const padY = 3;
+  const w = Math.ceil(metrics.width) + padX * 2;
+  const h = 14;
+  const bx = x - w / 2;
+  const by = y - h;
+  // 背景
+  ctx.fillStyle = "rgba(0,0,0,0.7)";
+  ctx.fillRect(bx, by, w, h);
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(bx, by, w, h);
+  // テキスト
+  ctx.fillStyle = "#fff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, x, by + h / 2);
+  ctx.restore();
+}
+
+// v2 Sprint 2 Commit 4: Stage 別背景装飾
+// 藤井 art-direction §4 準拠 (簡略版、BGM/複雑アニメは Sprint 3 分離)
+function drawStageDecor(ctx: CanvasRenderingContext2D, stageNum: number, t: number) {
+  if (stageNum === 1) {
+    // Stage 1: ビールジョッキ (左下) + ポップコーン散布
+    ctx.save();
+    // ビールジョッキ
+    ctx.fillStyle = "#f5deb3";
+    ctx.fillRect(30, CANVAS_H - 90, 20, 36);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(30, CANVAS_H - 90, 20, 8); // 泡
+    ctx.strokeStyle = "#8b7a4b";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(30, CANVAS_H - 90, 20, 36);
+    // ポップコーン (固定位置の 5 粒)
+    const popcorn = [[80, CANVAS_H - 68], [90, CANVAS_H - 62], [100, CANVAS_H - 72], [110, CANVAS_H - 64], [120, CANVAS_H - 70]];
+    ctx.fillStyle = "#fff59d";
+    for (const [px, py] of popcorn) {
+      ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  } else if (stageNum === 2) {
+    // Stage 2: タイムバンクメーター (上部中央)
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillRect(CANVAS_W / 2 - 50, 4, 100, 4);
+    const tbRatio = 0.5 + 0.5 * Math.sin(t * 0.02); // 0.5Hz 程度で演出
+    ctx.fillStyle = "#ffd700";
+    ctx.fillRect(CANVAS_W / 2 - 50, 4, 100 * tbRatio, 4);
+    // 観客ざわつき (小さい点を 20 粒、位置固定)
+    ctx.fillStyle = "rgba(255,255,255,0.05)";
+    for (let i = 0; i < 20; i++) {
+      const px = ((i * 37) % CANVAS_W);
+      const py = ((i * 53) % 80) + 100;
+      ctx.fillRect(px, py, 2, 2);
+    }
+    ctx.restore();
+  } else if (stageNum === 3) {
+    // Stage 3: バブルカウンター (右上) + 観客シルエット (下)
+    ctx.save();
+    const blink = Math.floor(t / 20) % 2 === 0;
+    if (blink) {
+      ctx.fillStyle = "#ff6b6b";
+      ctx.font = "bold 10px monospace";
+      ctx.textAlign = "right";
+      ctx.fillText("BUBBLE 残り3人", CANVAS_W - 10, 46);
+    }
+    ctx.fillStyle = "rgba(0,0,0,0.4)";
+    ctx.fillRect(0, CANVAS_H - 12, CANVAS_W, 12);
+    ctx.restore();
+  } else if (stageNum === 4) {
+    // Stage 4: スポットライト + 観客シルエット両端 + LIVE STREAMING
+    ctx.save();
+    // 中央スポットライト
+    const grad = ctx.createRadialGradient(CANVAS_W / 2, 0, 50, CANVAS_W / 2, 0, 400);
+    grad.addColorStop(0, "rgba(255,255,255,0.15)");
+    grad.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    // 両端観客シルエット
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillRect(0, 0, 40, CANVAS_H);
+    ctx.fillRect(CANVAS_W - 40, 0, 40, CANVAS_H);
+    // LIVE STREAMING (0.5Hz 点滅)
+    const livePulse = Math.floor(t / 30) % 2 === 0;
+    if (livePulse) {
+      ctx.fillStyle = "#ff0000";
+      ctx.beginPath(); ctx.arc(CANVAS_W / 2 - 44, 46, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#ff0000";
+      ctx.font = "bold 9px monospace";
+      ctx.textAlign = "left";
+      ctx.fillText("LIVE STREAMING", CANVAS_W / 2 - 38, 49);
+    }
+    ctx.restore();
+  }
+}
+
+// v2 Sprint 2 Commit 4: Stage 3 赤フラッシュ (3秒間隔で 0.2秒)
+function drawStageFlash(ctx: CanvasRenderingContext2D, stageNum: number, t: number) {
+  if (stageNum !== 3) return;
+  const cycle = t % 180; // 3 秒 = 180 frames
+  if (cycle < 12) {
+    // 0-12 frame = 200ms 赤フラッシュ
+    const alpha = 0.3 * (1 - cycle / 12);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = "#ff0000";
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    ctx.restore();
+  }
 }

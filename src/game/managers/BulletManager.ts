@@ -16,7 +16,15 @@ export function updateBullets(
   onEnemyKill: DefeatEnemyHandler,
 ) {
   g.bullets.forEach((b) => { b.x += b.speed; if (b.vy) b.y += b.vy; });
-  g.enemyBullets.forEach((b) => { b.x += b.vx; b.y += b.vy; });
+  // v2 Sprint 2 Commit 4: gravity 対応 + rotation 更新 (ドンクチップ弾)
+  g.enemyBullets.forEach((b) => {
+    b.x += b.vx;
+    b.y += b.vy;
+    if (b.gravity !== undefined) b.vy += b.gravity;
+    if (b.rotationSpeed !== undefined) {
+      b.rotation = (b.rotation ?? 0) + b.rotationSpeed;
+    }
+  });
 
   g.bullets = g.bullets.filter((b) => {
     if (b.x > CANVAS_W) return false;
