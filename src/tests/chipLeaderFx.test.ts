@@ -12,7 +12,12 @@ function makeStubCtx(): CanvasRenderingContext2D {
       if (prop in target) return target[prop];
       return (..._args: unknown[]) => {
         calls.push(String(prop));
-        if (prop === "createRadialGradient") {
+        // Sprint 3 Track A Phase 2: Optimized 版で createLinearGradient / createPattern も使う可能性あり
+        if (
+          prop === "createRadialGradient"
+          || prop === "createLinearGradient"
+          || prop === "createPattern"
+        ) {
           return {
             addColorStop: () => calls.push("addColorStop"),
           };

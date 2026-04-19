@@ -4,6 +4,8 @@ import { evaluateHand } from "../hand/evaluateHand";
 import { HAND_COLORS, HAND_NAMES } from "../hand/constants";
 import { STACK_BAR_COLORS, PHASE_TRANSITION_TEXT, ONE_OUTER_TEXT } from "../characters/constants";
 import { drawChipLeader } from "../boss/chipLeaderFx";
+import { drawStageBoss } from "../boss/stageBossFx";
+import { drawStageDecorVertical } from "./stageDecor";
 
 export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: number) {
   ctx.save();
@@ -17,8 +19,8 @@ export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: numbe
   ctx.fillStyle = g.cfg.bg;
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
-  // v2 Sprint 2 Commit 4: ステージ別背景装飾
-  drawStageDecor(ctx, g.stageNum, g.stageTimer);
+  // Sprint 3 Track A Phase 2: 縦画面用背景装飾 (旧 drawStageDecor は rollback 用に定義のみ残存)
+  drawStageDecorVertical(ctx, g.stageNum, g.stageTimer, g.stageTimer);
 
   // v2 縦画面化: Grid の Y 軸をスクロール (上から下へ背景が流れる印象)
   ctx.strokeStyle = "rgba(255,255,255,0.04)";
@@ -105,10 +107,13 @@ export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: numbe
   // Boss
   if (g.boss) {
     const b = g.boss;
-    // v2 Sprint 2 Commit 3: Stage 4 CHIP LEADER は専用 11 レイヤー描画に差し替え
+    // Sprint 3 Track A Phase 2: Stage 1-3 は drawStageBoss、Stage 4 CHIP LEADER は継続
     if (g.stageNum === 4 && b.chipLeaderPhase !== undefined) {
       drawChipLeader(ctx, b, g.stageTimer);
+    } else if (g.stageNum >= 1 && g.stageNum <= 3) {
+      drawStageBoss(ctx, b, g.stageNum, g.stageTimer);
     } else {
+      // 未知ステージの安全フォールバック
       const gradient = ctx.createRadialGradient(b.x + 25, b.y + 25, 5, b.x + 25, b.y + 25, 35);
       gradient.addColorStop(0, "#ffd700");
       gradient.addColorStop(1, "#ff4444");
@@ -118,14 +123,21 @@ export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: numbe
       ctx.lineWidth = 2;
       ctx.strokeRect(b.x, b.y, b.w, b.h);
     }
-    ctx.fillStyle = "#ffd700";
-    ctx.font = "bold 10px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(g.cfg.bossName, b.x + 25, b.y - 12);
+    // Stage 4 のみ bossName ラベル表示 (Stage 1-3 は drawStageBoss 内で独自描画)
+    // bbox 幅に依存しない中央基準 (旧 b.x + 25 は 50px bbox 前提のハードコード)
+    if (g.stageNum === 4) {
+      ctx.fillStyle = "#ffd700";
+      ctx.font = "bold 10px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(g.cfg.bossName, b.x + b.w / 2, b.y - 12);
+    }
+    // HP バー (全ステージ共通、bbox 幅に追従)
+    const hpBarW = b.w + 20;
+    const hpBarX = b.x - 10;
     ctx.fillStyle = "#333";
-    ctx.fillRect(b.x - 10, b.y - 6, 70, 5);
+    ctx.fillRect(hpBarX, b.y - 6, hpBarW, 5);
     ctx.fillStyle = b.hp / b.maxHp > 0.3 ? "#ff4444" : "#ff0000";
-    ctx.fillRect(b.x - 10, b.y - 6, 70 * (b.hp / b.maxHp), 5);
+    ctx.fillRect(hpBarX, b.y - 6, hpBarW * (b.hp / b.maxHp), 5);
   }
 
   // Player bullets (v2 縦画面化: 縦長矩形で上方向弾の形に)

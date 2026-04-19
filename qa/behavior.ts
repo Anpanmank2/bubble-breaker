@@ -87,17 +87,20 @@ export async function injectBehavior(page: Page, persona: Persona): Promise<void
 
       // 4. In-game decision
       const player = gs.player;
-      const reach_threat_radius = 30 + p.precision * 50;  // higher precision = larger detection radius = earlier avoidance (Sprint 3 Track B-1 fix)
+      // Sprint 3 Track B-4: threat_radius を critical_radius に縮小 (Owner FB「攻略せよ」)
+      // 旧: reach_threat_radius = 30 + precision*50 = 45-76px (近距離でも即回避 = 攻撃中断)
+      // 新: critical_radius = 20 + precision*15 = 26-34px (本当に近い弾のみ回避、中距離は攻撃継続)
+      const critical_radius = 20 + p.precision * 15;
 
-      // 4a. Threat avoidance (highest priority)
+      // 4a. Threat avoidance (critical only)
       let avoidVecX = 0, avoidVecY = 0;
       for (const b of gs.enemyBullets) {
         const dx = player.x - b.x;
         const dy = player.y - b.y;
         const d = Math.sqrt(dx * dx + dy * dy);
-        if (d < reach_threat_radius && d > 0.1) {
+        if (d < critical_radius && d > 0.1) {
           // weight inversely with distance, push away
-          const w_force = (reach_threat_radius - d) / reach_threat_radius;
+          const w_force = (critical_radius - d) / critical_radius;
           avoidVecX += (dx / d) * w_force * 50;
           avoidVecY += (dy / d) * w_force * 30;
         }
@@ -113,11 +116,14 @@ export async function injectBehavior(page: Page, persona: Persona): Promise<void
         return;
       }
 
-      // 4b. Boss phase: track boss x
+      // 4b. Boss phase: offensive positioning (Sprint 3 Track B-4: Owner FB「攻略せよ」)
+      // 旧: target x random ±40px (精度低、boss 真下に収まらない)、y=player.y 自由 (下部張り付き)
+      // 新: target x random ±20px (精度向上)、target y=300 固定 (画面中段、Boss y=90 から距離 210px で攻撃効率 up)
       if (gs.boss && gs.phase === "boss") {
-        const targetX = gs.boss.x + gs.boss.w / 2 + (Math.random() - 0.5) * (1 - p.precision) * 80;
+        const targetX = gs.boss.x + gs.boss.w / 2 + (Math.random() - 0.5) * (1 - p.precision) * 40;
+        const targetY = 300 + (Math.random() - 0.5) * (1 - p.precision) * 60; // 300 ± 30 (precision 低は散らばり大)
         gs.inputX = Math.max(20, Math.min(460, targetX));
-        gs.inputY = Math.max(350, Math.min(620, player.y));  // stay in lower zone (Sprint 3 Track C: 450→350 で上方向に動ける幅拡大)
+        gs.inputY = Math.max(250, Math.min(450, targetY));
         gs.inputActive = true;
         if (w.__qaFirstInputMs === null) w.__qaFirstInputMs = Date.now() - (w.__qaStartMs ?? 0);
         return;

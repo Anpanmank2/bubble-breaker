@@ -86,3 +86,38 @@ export const ENEMY_DIALOG_LINES: Record<string, readonly string[]> = {
 export const DEFAULT_FONT = "bold 11px monospace";
 export const DIALOG_FONT = "bold 10px monospace";
 export const PHASE_TEXT_FONT = "bold 32px monospace"; // サイズは各 PHASE_TRANSITION_TEXT の fontSize で上書き
+
+// ─────────────────────────────────────────────────────────────────
+// Sprint 3 Track A Phase 2: Stage 1-3 ボスカラーセット (藤井 eng-05 AD)
+// Stage 1: DONK BET KING (赤系 / 衝動的)
+// Stage 2: 3-BET MONSTER (黒 + 赤 / 攻撃的)
+// Stage 3: SLOW PLAYER GOD (深緑 + 金 / 神秘)
+// Stage 4: CHIP_LEADER_COLORS (既存)
+// ─────────────────────────────────────────────────────────────────
+export const STAGE_BOSS_COLORS = {
+  1: {
+    body:   "#f5f5f5",   // 白Tシャツ
+    accent: "#e63946",   // 赤ロゴ / ラベル文字
+    skin:   "#f4c28a",   // 肌色 (CHIP_LEADER_COLORS.phase1.skin と統一)
+    hair:   "#2a2a2a",   // 刈り上げ黒髪
+    aura:   "#e63946",   // 衝動の赤オーラ
+    chip:   "#e63946",   // 赤チップ
+  },
+  2: {
+    body:   "#1a1a2e",   // 黒ジャケット (CHIP_LEADER_COLORS.phase1.body と統一)
+    accent: "#e63946",   // 赤サングラス / ラベル
+    skin:   "#f4c28a",   // 肌色
+    hair:   "#1a1a1a",   // ツーブロック黒
+    aura:   "#cc0000",   // 深赤オーラ (怒気)
+  },
+  3: {
+    body:   "#1b4332",   // 深緑の衣
+    accent: "#c9a84c",   // 金の衣縁 / ラベル
+    skin:   "#e8c49a",   // 落ち着いた肌色
+    hair:   "#e8e8e8",   // 白髪
+    aura:   "#2d6a4f",   // 静謐な深緑オーラ
+    sash:   "#c9a84c",   // 袈裟の紐 (金)
+  },
+} as const;
+
+export type StageBossColorKey = keyof typeof STAGE_BOSS_COLORS;
