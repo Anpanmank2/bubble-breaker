@@ -276,6 +276,13 @@ export default function Game() {
       if (cur !== "playing" && cur !== "boss") return;
       update(g);
       render(g, ctx, livesRef.current);
+      // v2 Sprint 2 Commit 5: e2e 動的検証用に game state と FPS counter を window 経由で公開
+      // (debug=1 のみ。production NODE_ENV では `?bossHpScale` と同様に gate される)
+      if (debugOn && typeof window !== "undefined") {
+        (window as Window & { __gs?: GameState }).__gs = g;
+        const w = window as Window & { __fpsFrame?: number };
+        w.__fpsFrame = (w.__fpsFrame ?? 0) + 1;
+      }
       if (cancelled) return;
       animRef.current = requestAnimationFrame(loop);
     };
@@ -286,7 +293,7 @@ export default function Game() {
       if (animRef.current) cancelAnimationFrame(animRef.current);
       animRef.current = null;
     };
-  }, [screen, forcedKey, startStage]);
+  }, [screen, forcedKey, startStage, debugOn]);
 
   // Input binding
   useEffect(() => {
