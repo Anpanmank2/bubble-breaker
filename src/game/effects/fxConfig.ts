@@ -24,7 +24,7 @@ const DEFAULT_FX = {
   phaseImmuneMs: 800,     // ?phaseImmuneMs
 } as const;
 
-export type FxConfig = typeof DEFAULT_FX;
+export type FxConfig = { [K in keyof typeof DEFAULT_FX]: number };
 
 /**
  * URL search params から FX 設定を読み取る

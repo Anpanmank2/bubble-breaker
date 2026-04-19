@@ -6,19 +6,53 @@ import {
   detectPhaseTransition,
 } from "../boss/bossPhases";
 import { readFxConfig } from "../effects/fxConfig";
+import { spawnPhaseTransition } from "../effects/phaseTransition";
 
 const CHIP_LEADER_STAGE = 4;
+
+// v2 Sprint 2 Commit 2: Phase 別 shoot パラメータ (CHIP LEADER 戦のみ)
+type ShootParams = {
+  shootInterval: number;
+  spread: number;
+  angleSpread: number;
+  bulletSpeedMult: number;
+};
+
+function getShootParams(g: GameState, hpRatio: number): ShootParams {
+  if (g.stageNum === CHIP_LEADER_STAGE && g.boss?.chipLeaderPhase !== undefined) {
+    const phase = g.boss.chipLeaderPhase;
+    if (phase === 1) return { shootInterval: 35, spread: 1, angleSpread: 0.0, bulletSpeedMult: 1.0 };
+    if (phase === 2) return { shootInterval: 28, spread: 3, angleSpread: 0.18, bulletSpeedMult: 1.0 };
+    return { shootInterval: 14, spread: 5, angleSpread: 0.14, bulletSpeedMult: 1.8 };
+  }
+  // Stage 1-3 既存ロジック（回帰防止のため変更しない）
+  const shootInterval = hpRatio < 0.3 ? 15 : hpRatio < 0.6 ? 25 : 35;
+  const spread = hpRatio < 0.3 ? 3 : hpRatio < 0.6 ? 2 : 1;
+  return { shootInterval, spread, angleSpread: 0.2, bulletSpeedMult: 1.0 };
+}
+
+// v2 Sprint 2 Commit 2: bossHpScale URL param で boss HP を倍率調整 (QA verification 用)
+function readBossHpScale(): number {
+  if (typeof window === "undefined") return 1.0;
+  const v = new URLSearchParams(window.location.search).get("bossHpScale");
+  if (v === null) return 1.0;
+  const n = parseFloat(v);
+  if (isNaN(n) || n <= 0 || n > 1) return 1.0;
+  return n;
+}
 
 export function ensureBoss(g: GameState) {
   if (g.boss) return;
   const isChipLeader = g.stageNum === CHIP_LEADER_STAGE;
   const hpRatio = 1.0;
+  const hpScale = readBossHpScale();
+  const scaledMaxHp = Math.max(1, Math.round(g.cfg.bossHp * hpScale));
   g.boss = {
     x: CANVAS_W - 80,
     y: CANVAS_H / 2 - 40,
     w: 50, h: 50,
-    hp: g.cfg.bossHp,
-    maxHp: g.cfg.bossHp,
+    hp: scaledMaxHp,
+    maxHp: scaledMaxHp,
     shootTimer: 0,
     sinOffset: 0,
     phase: 0,
@@ -44,17 +78,19 @@ export function updateBoss(g: GameState) {
   b.y = CANVAS_H / 2 - 40 + Math.sin(b.sinOffset) * 120;
   b.shootTimer++;
 
-  const shootInterval = b.hp < b.maxHp * 0.3 ? 15 : b.hp < b.maxHp * 0.6 ? 25 : 35;
-  if (b.shootTimer >= shootInterval) {
+  const hpRatio = b.hp / b.maxHp;
+  const params = getShootParams(g, hpRatio);
+
+  if (b.shootTimer >= params.shootInterval) {
     b.shootTimer = 0;
     const angle = Math.atan2(g.player.y - b.y, g.player.x - b.x);
-    const spread = b.hp < b.maxHp * 0.3 ? 3 : b.hp < b.maxHp * 0.6 ? 2 : 1;
-    for (let i = -Math.floor(spread / 2); i <= Math.floor(spread / 2); i++) {
-      const a = angle + i * 0.2;
+    for (let i = -Math.floor(params.spread / 2); i <= Math.floor(params.spread / 2); i++) {
+      const a = angle + i * params.angleSpread;
+      const speed = g.cfg.bulletSpeed * params.bulletSpeedMult;
       g.enemyBullets.push({
         x: b.x, y: b.y + 25,
-        vx: Math.cos(a) * g.cfg.bulletSpeed,
-        vy: Math.sin(a) * g.cfg.bulletSpeed,
+        vx: Math.cos(a) * speed,
+        vy: Math.sin(a) * speed,
       });
     }
   }
@@ -80,17 +116,11 @@ function updateChipLeaderStack(g: GameState) {
   }
   b.stackBB = playerStackToBossStack(g.playerStackBB);
 
-  // Phase 判定と遷移検出
+  // Phase 判定と遷移検出 (発火は spawnPhaseTransition に集約)
   const newPhase = getChipLeaderPhase(hpRatio);
   const transitionKind = detectPhaseTransition(b.chipLeaderPhase, newPhase);
   if (transitionKind !== null) {
-    const durationMs = transitionKind === "EVEN_STACK" ? fx.evenStackMs : fx.chipLeadChangeMs;
-    const durationFrames = Math.round(durationMs / (1000 / 60));
-    g.phaseTransition = {
-      kind: transitionKind,
-      life: durationFrames,
-      maxLife: durationFrames,
-    };
+    spawnPhaseTransition(g, transitionKind);
   }
   b.chipLeaderPhase = newPhase;
 
@@ -115,3 +145,7 @@ export function updatePhaseTransition(g: GameState) {
     g.phaseTransition = undefined;
   }
 }
+
+export const __test__ = {
+  getShootParams,
+};

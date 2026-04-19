@@ -83,6 +83,18 @@ export type PhaseTransition = {
   maxLife: number;
 };
 
+// v2 Sprint 2 Commit 2: チップパーティクル (ヒット位置 → HUD ベジェ吸い込み)
+export type ChipParticleKind = "to-player" | "to-boss";
+
+export type ChipParticle = {
+  x: number; y: number;
+  targetX: number; targetY: number;
+  vy: number;
+  life: number; maxLife: number;
+  color: string;
+  kind: ChipParticleKind;
+};
+
 export type GamePhase = "collect" | "transition" | "boss";
 
 export type GameState = {
@@ -119,6 +131,9 @@ export type GameState = {
   // v2 Sprint 2
   playerStackBB?: number;
   phaseTransition?: PhaseTransition;
+  // v2 Sprint 2 Commit 2: phaseTransition 中の被弾無効残フレーム
+  phaseImmuneRemain?: number;
+  chipParticles?: ChipParticle[];
 };
 
 export function createGameState(stageNum: number, cfg: StageConfig): GameState {

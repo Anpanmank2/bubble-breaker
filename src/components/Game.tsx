@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "@/game/hand/constants";
 import {
   CANVAS_W, CANVAS_H, BULLET_SPEED,
-  createGameState, addParticles, GameState,
+  createGameState, addParticles, addFloatingText, GameState,
 } from "@/game/state/GameState";
 import { getStageConfig, DEATH_MESSAGES, STAGE_NAMES } from "@/game/stages/stageConfig";
 import { spawnEnemy, updateEnemies } from "@/game/managers/EnemyManager";
@@ -12,6 +12,9 @@ import { ensureBoss, updateBoss, updatePhaseTransition } from "@/game/managers/B
 import { updateBullets } from "@/game/managers/BulletManager";
 import { spawnScheduledCard, updateCards } from "@/game/managers/CardManager";
 import { updateParticles } from "@/game/engine/ParticleSystem";
+import { updateChipParticles, spawnChipBurst } from "@/game/effects/chipParticles";
+import { updatePhaseImmunity, isPhaseImmune } from "@/game/effects/phaseTransition";
+import { hpToPlayerStack } from "@/game/boss/bossPhases";
 import { render } from "@/game/engine/Renderer";
 import { evaluateHand, HandResult } from "@/game/hand/evaluateHand";
 import { totalCardValue } from "@/game/hand/totalCardValue";
@@ -206,6 +209,7 @@ export default function Game() {
         updateBoss(g);
       }
       updatePhaseTransition(g);
+      updatePhaseImmunity(g);
 
       if (g.phase === "collect") {
         updateEnemies(g);
@@ -216,7 +220,8 @@ export default function Game() {
       }
 
       // Player damage
-      if (g.player.invincible <= 0) {
+      // v2 Sprint 2 Commit 2: Phase 転換中は被弾無効 (攻撃入力は継続)
+      if (g.player.invincible <= 0 && !isPhaseImmune(g)) {
         const hitByBullet = g.enemyBullets.some((b) => {
           const dx = g.player.x - b.x;
           const dy = g.player.y - b.y;
@@ -230,6 +235,15 @@ export default function Game() {
           g.shakeDuration = 15;
           g.shakeIntensity = 5;
           addParticles(g, g.player.x, g.player.y, "#ff0000", 12);
+
+          // v2 Sprint 2 Commit 2: CHIP LEADER 戦の被弾は -XBB 表示 + 逆チップ流出
+          if (g.stageNum === 4 && g.boss?.chipLeaderPhase !== undefined && g.playerStackBB !== undefined) {
+            const hpRatio = g.boss.hp / g.boss.maxHp;
+            const playerLossEstimate = Math.max(2, Math.round(hpToPlayerStack(hpRatio) * 0.05));
+            addFloatingText(g, g.player.x, g.player.y - 14, `-${playerLossEstimate}BB`, "#ef4444");
+            spawnChipBurst(g, g.player.x, g.player.y, "to-boss", 4, "#ffd700");
+          }
+
           setLives((prev) => {
             const next = prev - 1;
             if (next <= 0) {
@@ -246,6 +260,7 @@ export default function Game() {
         }
       }
 
+      updateChipParticles(g);
       updateParticles(g);
     };
 

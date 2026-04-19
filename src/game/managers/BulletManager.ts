@@ -1,5 +1,11 @@
 import { GameState, CANVAS_W, CANVAS_H, addParticles, addFloatingText } from "../state/GameState";
 import { getEnemyColor } from "../stages/enemyStats";
+import { hpToPlayerStack } from "../boss/bossPhases";
+import { spawnChipBurst } from "../effects/chipParticles";
+
+const CHIP_LEADER_STAGE = 4;
+const CHIPS_PER_HIT_MIN = 3;
+const CHIPS_PER_HIT_MAX = 5;
 
 export type BossKillHandler = (g: GameState) => void;
 export type DefeatEnemyHandler = () => void;
@@ -17,10 +23,25 @@ export function updateBullets(
     let hit = false;
 
     if (g.boss && b.x > g.boss.x - 25 && b.x < g.boss.x + g.boss.w && b.y > g.boss.y - 10 && b.y < g.boss.y + g.boss.h + 10) {
+      // v2 Sprint 2 Commit 2: CHIP LEADER 戦のみ BB delta + チップパーティクル
+      const isChipLeader = g.stageNum === CHIP_LEADER_STAGE && g.boss.chipLeaderPhase !== undefined;
+      const prevHpRatio = isChipLeader ? g.boss.hp / g.boss.maxHp : 0;
       g.boss.hp -= b.dmg;
       hit = true;
       addParticles(g, b.x, b.y, "#ffd700", 3);
-      if (g.boss.hp <= 0) {
+
+      if (isChipLeader && g.boss && g.boss.hp > 0) {
+        const newHpRatio = g.boss.hp / g.boss.maxHp;
+        const deltaBB = hpToPlayerStack(newHpRatio) - hpToPlayerStack(prevHpRatio);
+        const roundedDelta = Math.round(deltaBB);
+        if (roundedDelta > 0) {
+          addFloatingText(g, b.x, b.y - 12, `+${roundedDelta}BB`, "#4ade80");
+          const count = CHIPS_PER_HIT_MIN + Math.floor(Math.random() * (CHIPS_PER_HIT_MAX - CHIPS_PER_HIT_MIN + 1));
+          spawnChipBurst(g, b.x, b.y, "to-player", count, "#ffd700");
+        }
+      }
+
+      if (g.boss && g.boss.hp <= 0) {
         g.bossDefeated = true;
         addParticles(g, g.boss.x, g.boss.y, "#ff4444", 20);
         g.boss = null;

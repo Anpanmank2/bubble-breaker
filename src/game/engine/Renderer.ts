@@ -224,11 +224,39 @@ export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: numbe
     drawStackBar(g, ctx);
   }
 
+  // v2 Sprint 2 Commit 2: チップパーティクル (HUD 吸い込み)
+  if (g.chipParticles && g.chipParticles.length > 0) {
+    drawChipParticles(g, ctx);
+  }
+
   // v2 Sprint 2: Phase 転換テキスト
   if (g.phaseTransition) {
     drawPhaseTransition(g, ctx);
   }
 
+  ctx.restore();
+}
+
+function drawChipParticles(g: GameState, ctx: CanvasRenderingContext2D) {
+  if (!g.chipParticles) return;
+  ctx.save();
+  for (const p of g.chipParticles) {
+    const lifeRatio = p.life / p.maxLife;
+    ctx.globalAlpha = Math.min(1, lifeRatio * 1.5);
+    // 金チップ (r=4) + 縁
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#c99700";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // 中心の白い光沢
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.restore();
 }
 
