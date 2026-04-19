@@ -1,4 +1,4 @@
-import { GameState, CANVAS_W, addParticles, addFloatingText } from "../state/GameState";
+import { GameState, CANVAS_W, CANVAS_H, addParticles, addFloatingText } from "../state/GameState";
 import { Card } from "../hand/constants";
 import { getRealtimePower } from "../hand/getRealtimePower";
 import { randomCardForStage } from "../hand/stagePool";
@@ -9,9 +9,10 @@ export function spawnScheduledCard(g: GameState) {
   const dropInterval = Math.floor(g.collectDuration / (g.maxCardDrops + 1));
   if (g.stageTimer % dropInterval === 0 && g.cardDropCount < g.maxCardDrops) {
     const card = randomCardForStage(g.stageNum);
+    // v2 縦画面化: カードは上端から出現、下方向に進行
     g.cards.push({
-      x: CANVAS_W + 10,
-      y: 50 + Math.random() * (720 - 200),
+      x: 30 + Math.random() * (CANVAS_W - 60),
+      y: -10,
       card,
       speed: 1.2 + Math.random() * 0.5,
       sinOffset: Math.random() * Math.PI * 2,
@@ -25,14 +26,15 @@ export function spawnScheduledCard(g: GameState) {
 
 export function updateCards(g: GameState, onChange: OnCollectedChange) {
   g.cards.forEach((c) => {
-    c.x -= c.speed;
+    // v2 縦画面化: 主進行軸 Y、横揺れを X 方向に
+    c.y += c.speed;
     c.time++;
-    c.y += Math.sin(c.time * 0.03 + c.sinOffset) * c.sinAmp * 0.015;
+    c.x += Math.sin(c.time * 0.03 + c.sinOffset) * c.sinAmp * 0.015;
     c.glow = Math.sin(c.time * 0.08) * 0.3 + 0.7;
   });
 
   g.cards = g.cards.filter((c) => {
-    if (c.x < -30) return false;
+    if (c.y > CANVAS_H + 30) return false;
     const dx = g.player.x - c.x;
     const dy = g.player.y - c.y;
     if (Math.sqrt(dx * dx + dy * dy) < 30) {

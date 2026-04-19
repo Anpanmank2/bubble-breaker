@@ -129,19 +129,20 @@ export default function Game() {
 
     const update = (g: GameState) => {
       g.stageTimer++;
-      g.scrollX += 1;
+      g.scrollY += 1;
 
       if (g.inputActive) {
         g.player.x += (g.inputX - g.player.x) * 0.15;
         g.player.y += (g.inputY - g.player.y) * 0.15;
       }
+      // v2 縦画面化: プレイヤーは画面下部 (y=100..CANVAS_H-100) に制限、HUD (下部80px) を避ける
       g.player.x = Math.max(20, Math.min(CANVAS_W - 20, g.player.x));
-      g.player.y = Math.max(20, Math.min(CANVAS_H - 100, g.player.y));
+      g.player.y = Math.max(100, Math.min(CANVAS_H - 100, g.player.y));
 
       if (g.player.invincible > 0) g.player.invincible--;
       if (g.shakeDuration > 0) g.shakeDuration--;
 
-      // Auto shoot
+      // Auto shoot (v2 縦画面化: 上方向に発射)
       if (g.stageTimer % 8 === 0) {
         const power = g.phase === "boss" && g.handMult
           ? {
@@ -153,13 +154,13 @@ export default function Game() {
             }
           : getRealtimePower(g.collectedCards);
         g.bullets.push({
-          x: g.player.x + 12, y: g.player.y,
+          x: g.player.x, y: g.player.y - 12,
           speed: BULLET_SPEED, dmg: power.dmg, size: power.size, color: power.color,
         });
         for (let i = 0; i < power.extra; i++) {
           const spread = (i + 1) * 0.15 * (i % 2 === 0 ? 1 : -1);
           g.bullets.push({
-            x: g.player.x + 12, y: g.player.y,
+            x: g.player.x, y: g.player.y - 12,
             speed: BULLET_SPEED, dmg: power.dmg * 0.6,
             size: power.size * 0.7, color: power.color, vy: Math.sin(spread) * 2,
           });

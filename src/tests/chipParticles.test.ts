@@ -18,20 +18,20 @@ describe("spawnChipBurst — basic spawn", () => {
     expect(g.chipParticles).toHaveLength(4);
   });
 
-  it("kind=to-player は targetX が左寄り (プレイヤー HUD 側)", () => {
+  it("kind=to-player は targetY が下寄り (プレイヤー位置)", () => {
     const g = makeStubState();
     spawnChipBurst(g, 240, 360, "to-player", 1);
     const p = g.chipParticles![0];
-    // CANVAS_W=480 → PLAYER_HUD_TARGET_X = 70 + (480-90)*0.2 = 70 + 78 = 148
-    expect(p.targetX).toBeCloseTo(148, 0);
+    // v2 縦画面化: PLAYER_HUD_TARGET_Y = CANVAS_H - 140 = 580
+    expect(p.targetY).toBeCloseTo(580, 0);
   });
 
-  it("kind=to-boss は targetX が右寄り (ボス HUD 側)", () => {
+  it("kind=to-boss は targetY が上寄り (ボス位置)", () => {
     const g = makeStubState();
     spawnChipBurst(g, 240, 360, "to-boss", 1);
     const p = g.chipParticles![0];
-    // BOSS_HUD_TARGET_X = 70 + (480-90)*0.8 = 70 + 312 = 382
-    expect(p.targetX).toBeCloseTo(382, 0);
+    // v2 縦画面化: BOSS_HUD_TARGET_Y = 130
+    expect(p.targetY).toBeCloseTo(130, 0);
   });
 
   it("色を上書きできる", () => {

@@ -6,18 +6,19 @@
 
 import type { ChipParticle, ChipParticleKind, GameState } from "../state/GameState";
 import { FX_LIMITS, isLowEndDevice } from "./fxConfig";
-import { CANVAS_W } from "../state/GameState";
+import { CANVAS_W, CANVAS_H } from "../state/GameState";
 
 const LERP_FACTOR = 0.08;
 const GRAVITY_VY = 0.1;
 const PARTICLE_LIFE_FRAMES = 60;
 const ARRIVAL_RADIUS = 12;
 
-// HUD 位置 (Renderer drawStackBar と整合: yPlayer=60, yBoss=74, x range 70..(CANVAS_W-20))
-const PLAYER_HUD_TARGET_X = 70 + (CANVAS_W - 90) * 0.2; // YOU バーの先端付近
-const PLAYER_HUD_TARGET_Y = 65;
-const BOSS_HUD_TARGET_X = 70 + (CANVAS_W - 90) * 0.8;
-const BOSS_HUD_TARGET_Y = 79;
+// v2 縦画面化: キャラクター位置にチップが吸い込まれる演出
+// to-player: 画面下部のプレイヤー側 / to-boss: 画面上部のボス側
+const PLAYER_HUD_TARGET_X = CANVAS_W / 2;
+const PLAYER_HUD_TARGET_Y = CANVAS_H - 140;
+const BOSS_HUD_TARGET_X = CANVAS_W / 2;
+const BOSS_HUD_TARGET_Y = 130;
 
 function getMaxParticles(transitionActive: boolean): number {
   const lowEnd = isLowEndDevice();

@@ -15,7 +15,8 @@ export function updateBullets(
   onBossDefeated: BossKillHandler,
   onEnemyKill: DefeatEnemyHandler,
 ) {
-  g.bullets.forEach((b) => { b.x += b.speed; if (b.vy) b.y += b.vy; });
+  // v2 縦画面化: プレイヤー弾は上方向 (b.y -= b.speed)、vy は横方向ドリフトに再解釈
+  g.bullets.forEach((b) => { b.y -= b.speed; if (b.vy) b.x += b.vy; });
   // v2 Sprint 2 Commit 4: gravity 対応 + rotation 更新 (ドンクチップ弾)
   g.enemyBullets.forEach((b) => {
     b.x += b.vx;
@@ -27,7 +28,7 @@ export function updateBullets(
   });
 
   g.bullets = g.bullets.filter((b) => {
-    if (b.x > CANVAS_W) return false;
+    if (b.y < -20) return false;
     let hit = false;
 
     if (g.boss && b.x > g.boss.x - 25 && b.x < g.boss.x + g.boss.w && b.y > g.boss.y - 10 && b.y < g.boss.y + g.boss.h + 10) {
@@ -76,10 +77,11 @@ export function updateBullets(
       onEnemyKill();
       return false;
     }
-    if (e.x < -30) return false;
+    // v2 縦画面化: 画面下端を超えたら消滅
+    if (e.y > CANVAS_H + 30) return false;
     return true;
   });
 
   g.enemyBullets = g.enemyBullets.filter((b) => b.x > -10 && b.x < CANVAS_W + 10 && b.y > -10 && b.y < CANVAS_H + 10);
-  g.enemies = g.enemies.filter((e) => e.x > -40);
+  g.enemies = g.enemies.filter((e) => e.y < CANVAS_H + 40);
 }

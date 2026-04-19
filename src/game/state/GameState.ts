@@ -135,7 +135,7 @@ export type GameState = {
   collectDuration: number;
   cfg: StageConfig;
   stageNum: number;
-  scrollX: number;
+  scrollY: number;
   shakeDuration: number;
   shakeIntensity: number;
   inputY: number;
@@ -167,7 +167,8 @@ export type OneOuterSequence = {
 
 export function createGameState(stageNum: number, cfg: StageConfig): GameState {
   return {
-    player: { x: 80, y: CANVAS_H / 2, shooting: true, invincible: 0 },
+    // v2 縦画面化: プレイヤー初期位置を下部中央、入力ターゲットも下部
+    player: { x: CANVAS_W / 2, y: CANVAS_H - 140, shooting: true, invincible: 0 },
     bullets: [],
     enemies: [],
     enemyBullets: [],
@@ -185,11 +186,11 @@ export function createGameState(stageNum: number, cfg: StageConfig): GameState {
     collectDuration: 25 * 60,
     cfg,
     stageNum,
-    scrollX: 0,
+    scrollY: 0,
     shakeDuration: 0,
     shakeIntensity: 0,
-    inputY: CANVAS_H / 2,
-    inputX: 80,
+    inputY: CANVAS_H - 140,
+    inputX: CANVAS_W / 2,
     inputActive: false,
     score: 0,
     combo: 0,

@@ -41,9 +41,10 @@ export function spawnEnemy(g: GameState) {
   const cfg = g.cfg;
   const types = stageEnemyTypes(g.stageNum);
   const type = types[Math.floor(Math.random() * types.length)];
+  // v2 縦画面化: 上端から下向きに進行
   const enemy = {
-    x: CANVAS_W + 20,
-    y: 60 + Math.random() * (CANVAS_H - 200),
+    x: 30 + Math.random() * (CANVAS_W - 60),
+    y: -20,
     type,
     hp: getEnemyHp(type, cfg),
     maxHp: getEnemyHp(type, cfg),
@@ -71,19 +72,20 @@ export function spawnEnemy(g: GameState) {
 
 export function updateEnemies(g: GameState) {
   g.enemies.forEach((e) => {
+    // v2 縦画面化: 主進行軸を Y (下方向)、揺らぎを X 方向に
     if (e.type === "gaba") {
-      e.x -= e.speed * 0.8;
-      e.y += Math.sin(g.stageTimer * 0.05 + e.sinOffset) * 2;
+      e.y += e.speed * 0.8;
+      e.x += Math.sin(g.stageTimer * 0.05 + e.sinOffset) * 2;
       if (Math.random() < 0.005) e.speed *= 2.5;
     } else if (e.type === "callstation") {
-      e.x -= e.speed * 0.5;
-      e.y += Math.sin(g.stageTimer * 0.03 + e.sinOffset) * e.sinAmp * 0.02;
+      e.y += e.speed * 0.5;
+      e.x += Math.sin(g.stageTimer * 0.03 + e.sinOffset) * e.sinAmp * 0.02;
     } else if (e.type === "slowplay") {
-      e.x -= e.speed * (Math.random() < 0.01 ? 3 : 0.6);
-      e.y += Math.sin(g.stageTimer * 0.04 + e.sinOffset) * 1.5;
+      e.y += e.speed * (Math.random() < 0.01 ? 3 : 0.6);
+      e.x += Math.sin(g.stageTimer * 0.04 + e.sinOffset) * 1.5;
     } else {
-      e.x -= e.speed;
-      e.y += Math.sin(g.stageTimer * 0.04 + e.sinOffset) * e.sinAmp * 0.015;
+      e.y += e.speed;
+      e.x += Math.sin(g.stageTimer * 0.04 + e.sinOffset) * e.sinAmp * 0.015;
     }
 
     // HP 50% 通過時に 50% でセリフ (1 回のみ)

@@ -20,13 +20,13 @@ export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: numbe
   // v2 Sprint 2 Commit 4: ステージ別背景装飾
   drawStageDecor(ctx, g.stageNum, g.stageTimer);
 
-  // Grid
+  // v2 縦画面化: Grid の Y 軸をスクロール (上から下へ背景が流れる印象)
   ctx.strokeStyle = "rgba(255,255,255,0.04)";
   ctx.lineWidth = 1;
-  for (let x = -(g.scrollX % 40); x < CANVAS_W; x += 40) {
+  for (let x = 0; x < CANVAS_W; x += 40) {
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CANVAS_H); ctx.stroke();
   }
-  for (let y = 0; y < CANVAS_H; y += 40) {
+  for (let y = -(g.scrollY % 40); y < CANVAS_H; y += 40) {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CANVAS_W, y); ctx.stroke();
   }
 
@@ -128,15 +128,15 @@ export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: numbe
     ctx.fillRect(b.x - 10, b.y - 6, 70 * (b.hp / b.maxHp), 5);
   }
 
-  // Player bullets
+  // Player bullets (v2 縦画面化: 縦長矩形で上方向弾の形に)
   g.bullets.forEach((b) => {
     ctx.fillStyle = b.color || "#4ecdc4";
     const s = b.size || 4;
-    ctx.fillRect(b.x, b.y - s / 2, s * 2, s);
+    ctx.fillRect(b.x - s / 2, b.y - s * 2, s, s * 2);
     if (s > 5) {
       ctx.shadowColor = b.color || "#4ecdc4";
       ctx.shadowBlur = 6;
-      ctx.fillRect(b.x, b.y - s / 2, s * 2, s);
+      ctx.fillRect(b.x - s / 2, b.y - s * 2, s, s * 2);
       ctx.shadowBlur = 0;
     }
   });
@@ -486,18 +486,23 @@ function drawEnemyDialog(
 // 藤井 art-direction §4 準拠 (簡略版、BGM/複雑アニメは Sprint 3 分離)
 function drawStageDecor(ctx: CanvasRenderingContext2D, stageNum: number, t: number) {
   if (stageNum === 1) {
-    // Stage 1: ビールジョッキ (左下) + ポップコーン散布
+    // Stage 1: ビールジョッキ + ポップコーン散布 (v2 縦画面化: 下部 HUD を避け右上寄り)
     ctx.save();
-    // ビールジョッキ
+    // ビールジョッキ (右上)
+    const mugX = CANVAS_W - 50;
+    const mugY = 60;
     ctx.fillStyle = "#f5deb3";
-    ctx.fillRect(30, CANVAS_H - 90, 20, 36);
+    ctx.fillRect(mugX, mugY, 20, 36);
     ctx.fillStyle = "#fff";
-    ctx.fillRect(30, CANVAS_H - 90, 20, 8); // 泡
+    ctx.fillRect(mugX, mugY, 20, 8); // 泡
     ctx.strokeStyle = "#8b7a4b";
     ctx.lineWidth = 2;
-    ctx.strokeRect(30, CANVAS_H - 90, 20, 36);
-    // ポップコーン (固定位置の 5 粒)
-    const popcorn = [[80, CANVAS_H - 68], [90, CANVAS_H - 62], [100, CANVAS_H - 72], [110, CANVAS_H - 64], [120, CANVAS_H - 70]];
+    ctx.strokeRect(mugX, mugY, 20, 36);
+    // ポップコーン (右側縦列 5 粒)
+    const popcorn = [
+      [CANVAS_W - 30, 70], [CANVAS_W - 20, 76], [CANVAS_W - 32, 82],
+      [CANVAS_W - 22, 88], [CANVAS_W - 28, 94],
+    ];
     ctx.fillStyle = "#fff59d";
     for (const [px, py] of popcorn) {
       ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI * 2); ctx.fill();
