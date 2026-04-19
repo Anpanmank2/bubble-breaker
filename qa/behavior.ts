@@ -117,14 +117,14 @@ export async function injectBehavior(page: Page, persona: Persona): Promise<void
       if (gs.boss && gs.phase === "boss") {
         const targetX = gs.boss.x + gs.boss.w / 2 + (Math.random() - 0.5) * (1 - p.precision) * 80;
         gs.inputX = Math.max(20, Math.min(460, targetX));
-        gs.inputY = Math.max(450, Math.min(620, player.y));  // stay in lower zone
+        gs.inputY = Math.max(350, Math.min(620, player.y));  // stay in lower zone (Sprint 3 Track C: 450→350 で上方向に動ける幅拡大)
         gs.inputActive = true;
         if (w.__qaFirstInputMs === null) w.__qaFirstInputMs = Date.now() - (w.__qaStartMs ?? 0);
         return;
       }
 
       // 4c. Collect phase: chase nearest card if risk_tolerance high
-      if (gs.phase === "collect" && gs.cards.length > 0 && p.risk_tolerance > 0.4) {
+      if (gs.phase === "collect" && gs.cards.length > 0 && p.risk_tolerance > 0.2) {  // Sprint 3 Track C: 0.4→0.2 でカード収集に向かうペルソナ増
         // pick nearest card
         let nearest = gs.cards[0];
         let minD = Infinity;

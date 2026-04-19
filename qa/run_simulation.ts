@@ -12,7 +12,12 @@ import { summarize } from "./summarize";
 
 // Local dev に対して QA 実行 (production bundle は IS_PRODUCTION DCE で window.__gs が消失するため
 // behavior 観測不可。`npm run dev` を別 terminal で起動してから本スクリプトを実行)
-const URL_DEFAULT = process.env.QA_URL ?? "http://localhost:3000/?debug=1";
+// Sprint 3 Track B-3 拡張: QA_START_STAGE=N で指定ステージから直接開始 (Sprint 2 機能検証用)
+const START_STAGE = process.env.QA_START_STAGE ? parseInt(process.env.QA_START_STAGE, 10) : null;
+const URL_DEFAULT = process.env.QA_URL
+  ?? (START_STAGE !== null
+        ? `http://localhost:3000/?debug=1&stage=${START_STAGE}&quick=1`
+        : "http://localhost:3000/?debug=1");
 const PARALLEL = parseInt(process.env.QA_PARALLEL ?? "3", 10);
 
 function parseArgs(): { url: string; parallel: number } {
@@ -132,8 +137,8 @@ async function runOnce(
 async function main() {
   const { url, parallel } = parseArgs();
   const dateStr = todayDateStr();
-  const reportDir = path.join("qa", "reports", `${dateStr}-sprint-3-phase-6`);
-  const videoBaseDir = path.join("qa", "videos", `${dateStr}-sprint-3-phase-6`);
+  const reportDir = path.join("qa", "reports", `${dateStr}-sprint-3-phase-6${START_STAGE !== null ? `-stage${START_STAGE}` : ""}`);
+  const videoBaseDir = path.join("qa", "videos", `${dateStr}-sprint-3-phase-6${START_STAGE !== null ? `-stage${START_STAGE}` : ""}`);
   fs.mkdirSync(reportDir, { recursive: true });
   fs.mkdirSync(videoBaseDir, { recursive: true });
 

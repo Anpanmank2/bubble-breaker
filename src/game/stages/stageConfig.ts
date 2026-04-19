@@ -17,9 +17,12 @@ export type StageConfig = {
 export const CHIP_LEADER_STAGE = 4;
 
 export const STAGE_CONFIGS: Record<1 | 2 | 3 | 4, StageConfig> = {
-  1: { name: "EARLY LEVEL",  blind: "100/200",    bg: "#1a472a", enemySpeed: 0.8, enemyHp: 1, spawnRate: 90, bulletSpeed: 1.8, cardDrops: 12, bossHp: 80,   bossName: "DONK BET KING",    remaining: 247 },
-  2: { name: "MIDDLE LEVEL", blind: "500/1000",   bg: "#1a3a2a", enemySpeed: 1.5, enemyHp: 2, spawnRate: 60, bulletSpeed: 2.8, cardDrops: 10, bossHp: 300,  bossName: "3-BET MONSTER",    remaining: 84 },
-  3: { name: "BUBBLE LINE",  blind: "2000/4000",  bg: "#2a1a1a", enemySpeed: 2.2, enemyHp: 3, spawnRate: 42, bulletSpeed: 3.8, cardDrops: 8,  bossHp: 800,  bossName: "SLOW PLAYER GOD",  remaining: 27 },
+  // Sprint 3 Track C: Owner FB「Stage 1 簡単、Stage 2 難しい」+ Audit 3 推奨で HP 調整
+  //   Stage 1 HP 80→70 (Owner 簡単体感を尊重した微調整)、Stage 2 HP 300→160 (大削減)、Stage 3 HP 800→600 (連動)
+  //   Stage 4 HP 1200 は Sprint 2 機能検証のため維持
+  1: { name: "EARLY LEVEL",  blind: "100/200",    bg: "#1a472a", enemySpeed: 0.8, enemyHp: 1, spawnRate: 90, bulletSpeed: 1.8, cardDrops: 12, bossHp: 70,   bossName: "DONK BET KING",    remaining: 247 },
+  2: { name: "MIDDLE LEVEL", blind: "500/1000",   bg: "#1a3a2a", enemySpeed: 1.5, enemyHp: 2, spawnRate: 60, bulletSpeed: 2.8, cardDrops: 10, bossHp: 160,  bossName: "3-BET MONSTER",    remaining: 84 },
+  3: { name: "BUBBLE LINE",  blind: "2000/4000",  bg: "#2a1a1a", enemySpeed: 2.2, enemyHp: 3, spawnRate: 42, bulletSpeed: 3.8, cardDrops: 8,  bossHp: 600,  bossName: "SLOW PLAYER GOD",  remaining: 27 },
   4: { name: "FINAL TABLE",  blind: "5000/10000", bg: "#0a0a1a", enemySpeed: 2.6, enemyHp: 3, spawnRate: 35, bulletSpeed: 4.2, cardDrops: 8,  bossHp: 1200, bossName: "CHIP LEADER",      remaining: 9 },
 };
 

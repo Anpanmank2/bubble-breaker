@@ -24,7 +24,7 @@ export const CHIP_LEADER_COLORS = {
     tuxedo: "#0a0a1f",
     sunglasses: "#1a1a2e",
     bowtie: "#e63946",
-    skin: "#f0d6b7",
+    skin: "#f4c28a", // Sprint 3 Track A: 藤井 AD spec 準拠 (#f0d6b7→#f4c28a で健康的な肌色に)
     aura: "#ffd700",
   },
   // Phase 2 (五角、汗)

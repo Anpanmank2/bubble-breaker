@@ -1,7 +1,8 @@
-// v2 Sprint 2 Commit 3: CHIP LEADER (Stage 4 ボス) 11 レイヤー描画
+// v2 Sprint 2 Commit 3 / Sprint 3 Track A: CHIP LEADER (Stage 4 ボス) 11 レイヤー描画
 // 藤井 art-direction §2-3 / §6 準拠:
 // Phase 1 intact (余裕) → Phase 2 cracked (汗+サングラスずれ) → Phase 3 broken (サングラス吹っ飛び+髪乱れ)
-// 描画は current boss.w=50 / h=50 の bounding box 内にスケール。collision box は変更しない。
+// Sprint 3: boss.w が 50→120 に拡大したため、レガシーの 50×50 bbox 座標系を scale factor で新サイズに適応。
+// 各 drawLayer 内のハードコード (radius 8、offset ±15 等) を変更せず、ctx.scale でまとめて拡大。
 
 import type { Boss } from "../state/GameState";
 import { CHIP_LEADER_COLORS } from "../characters/constants";
@@ -10,12 +11,24 @@ import { CHIP_LEADER_COLORS } from "../characters/constants";
  * drawChipLeader は 11 レイヤーを順次描画する。
  * Layer 1 (背面) → Layer 11 (前景) のzorder。
  */
+const LEGACY_BBOX_W = 50; // レガシー座標系の基準幅 (Sprint 2 当時の boss.w)
+
 export function drawChipLeader(ctx: CanvasRenderingContext2D, b: Boss, frameCount: number) {
   const cx = b.x + b.w / 2;
   const cy = b.y + b.h / 2;
+  const scale = b.w / LEGACY_BBOX_W;
 
+  ctx.save();
+  // 中心基準で scale 適用。各 drawLayer 内のハードコード座標は LEGACY_BBOX_W=50 前提のまま残す。
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+  ctx.translate(-cx, -cy);
+
+  // scale は transform 全体に適用されるため、各 drawLayer の座標はレガシー bbox (50×50) 基準のまま。
+  // Banner / ChipPile は旧 boss.w=50, h=50 想定で ±28 px 近辺を渡す (b.y-16 → cy-(50/2)-16 = cy-41 相当)
+  // 新 bbox でもこの位置指定のまま transform 下で描画することで全体が scale 倍に自然拡大される。
   drawAura(ctx, cx, cy, b, frameCount);           // 1
-  drawBanner(ctx, cx, b.y - 16, b, frameCount);   // 2
+  drawBanner(ctx, cx, cy - 25 - 16, b, frameCount); // 2: レガシー bbox 上端 (cy-25) から 16px 上
   drawTuxedo(ctx, cx, cy + 12, b);                // 3
   drawMoneyBags(ctx, cx, cy + 18);                // 4
   drawNeck(ctx, cx, cy + 2);                      // 5
@@ -24,7 +37,8 @@ export function drawChipLeader(ctx: CanvasRenderingContext2D, b: Boss, frameCoun
   drawHair(ctx, cx, cy - 14, b);                  // 8
   drawSunglasses(ctx, cx, cy - 6, b);             // 9
   drawSweat(ctx, cx, cy - 10, b);                 // 10
-  drawChipPile(ctx, cx, b.y + b.h + 2);           // 11
+  drawChipPile(ctx, cx, cy + 25 + 2); // 11: レガシー bbox 下端 (cy+25) から 2px 下
+  ctx.restore();
 }
 
 // Layer 1: 金色 / 虹色オーラ (Phase 3 で虹色点滅)

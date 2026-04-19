@@ -55,12 +55,13 @@ export function ensureBoss(g: GameState) {
   const hpRatio = 1.0;
   const hpScale = readBossHpScale();
   const scaledMaxHp = Math.max(1, Math.round(g.cfg.bossHp * hpScale));
-  // v2 縦画面化: ボスは画面上部中央に配置、X 方向に振動
-  // y=130 で上部 HUD (stage info/stack bar) と衝突しない位置
+  // v2 縦画面化 + Sprint 3 Track A 藤井 AD spec: ボスサイズを 120×140 に拡大 (迫力向上)
+  // 旧 50×50 では迫力不足の指摘あり (Owner FB 2026-04-19)
+  // y=90 で上部 HUD (stage info/stack bar) と衝突しない位置 (高さ 140 のため下方向に余裕確保)
   g.boss = {
-    x: CANVAS_W / 2 - 25,
-    y: 130,
-    w: 50, h: 50,
+    x: CANVAS_W / 2 - 60,
+    y: 90,
+    w: 120, h: 140,
     hp: scaledMaxHp,
     maxHp: scaledMaxHp,
     shootTimer: 0,
@@ -85,8 +86,9 @@ export function updateBoss(g: GameState) {
   if (!g.boss) return;
   const b = g.boss;
   b.sinOffset += 0.02;
-  // v2 縦画面化: 上部で X 方向に揺動
-  b.x = CANVAS_W / 2 - 25 + Math.sin(b.sinOffset) * (CANVAS_W / 2 - 60);
+  // v2 縦画面化: 上部で X 方向に揺動 (ボス幅 120 を中央基準にする: CANVAS_W/2 - 60)
+  // 振幅 CANVAS_W/2 - 100 で画面端にめり込まない (120 幅 + 余白 40)
+  b.x = CANVAS_W / 2 - 60 + Math.sin(b.sinOffset) * (CANVAS_W / 2 - 100);
   b.shootTimer++;
 
   const hpRatio = b.hp / b.maxHp;
