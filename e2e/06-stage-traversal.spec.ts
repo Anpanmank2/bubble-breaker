@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import path from "node:path";
+import { trackBossX } from "./_helpers";
 
 // C-1: Stage 1 boss kill traversal (forced FOUR_OF_A_KIND)
 // ENTRY -> collect ~2s (quick) -> HandReveal with FOUR -> FIGHT BOSS -> boss dies -> auto-advance to Stage 2
@@ -28,6 +29,10 @@ test("C-2 forced four-of-a-kind on stage 4 reaches CHAMPION screen", async ({ pa
   // collect -> handReveal
   await expect(page.getByTestId("btn-fight-boss")).toBeVisible({ timeout: 20_000 });
   await page.getByTestId("btn-fight-boss").click();
+
+  // v2 Sprint 2 hot-fix: 縦画面化で player stationary だと boss x 振動に弾が届かない
+  // → boss x 追従 input を window.__gs 経由で注入 (debug=1 必須)
+  await trackBossX(page);
 
   // Stage 4 boss has 1200 HP. AAAAK × 5.0 = ~395 handPower; 0.15 multiplier in Game.tsx = ~59/bullet @ ~7.5Hz.
   // Need to wait long enough for the boss to die (~20-40s), then the 500ms clear-transition timeout.

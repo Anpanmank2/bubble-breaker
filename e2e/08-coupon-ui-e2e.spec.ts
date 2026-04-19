@@ -1,14 +1,19 @@
 import { test, expect } from "@playwright/test";
+import { trackBossX } from "./_helpers";
 
 // C-4: Coupon UI happy path — force FOUR on Stage 4 -> CHAMPION -> issue coupon in UI.
 // The button lives in ClearScreen <LStepCouponPanel>. After clicking, the code element
 // should render with BB-2026-XXXXXXXX format and the LIFF link should be https://.
 test("C-4 CHAMPION -> issue coupon -> code + liff url rendered in UI", async ({ page }) => {
-  await page.goto("/?stage=4&test=four&quick=1");
+  // v2 Sprint 2 hot-fix: debug=1 で window.__gs を露出 (trackBossX が必須とする)
+  await page.goto("/?stage=4&test=four&quick=1&debug=1");
   await page.getByTestId("btn-entry").click();
 
   await expect(page.getByTestId("btn-fight-boss")).toBeVisible({ timeout: 20_000 });
   await page.getByTestId("btn-fight-boss").click();
+
+  // 縦画面化対応: boss x 追従 input 注入で弾を当て続ける
+  await trackBossX(page);
 
   await expect(page.locator(".champion-title")).toBeVisible({ timeout: 50_000 });
 
