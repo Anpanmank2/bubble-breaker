@@ -107,7 +107,8 @@ describe("detectPhaseTransition", () => {
     expect(detectPhaseTransition(undefined, 2)).toBeNull();
   });
 
-  it("Phase 1→3 の直接遷移は null (理論上起こらないが安全性確認)", () => {
-    expect(detectPhaseTransition(1, 3)).toBeNull();
+  it("Phase 1→3 直接遷移は CHIP_LEAD_CHANGE (bossHpScale QA や一撃大ダメージで発生)", () => {
+    // mid-audit MEDIUM-2 修正: Phase 境界を跨いでも演出は必ず発火
+    expect(detectPhaseTransition(1, 3)).toBe("CHIP_LEAD_CHANGE");
   });
 });

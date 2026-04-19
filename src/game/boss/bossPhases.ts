@@ -75,5 +75,8 @@ export function detectPhaseTransition(
   if (prevPhase === undefined) return null;
   if (prevPhase === 1 && currentPhase === 2) return "EVEN_STACK";
   if (prevPhase === 2 && currentPhase === 3) return "CHIP_LEAD_CHANGE";
+  // Commit 3 mid-audit: Phase 1→3 直接遷移 (bossHpScale QA 時や一撃大ダメージ時)
+  // より劇的な CHIP_LEAD_CHANGE を発火 (EVEN_STACK は短尺かつ中間演出なのでスキップが自然)
+  if (prevPhase === 1 && currentPhase === 3) return "CHIP_LEAD_CHANGE";
   return null;
 }
