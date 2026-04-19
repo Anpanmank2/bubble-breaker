@@ -31,6 +31,11 @@ import { RoyalClearScreen } from "./RoyalClearScreen";
 import { DebugPanel } from "./DebugPanel";
 import { localStore } from "@/lib/storage/local";
 
+// v2 Sprint 2 Audit 2 fix: production build では debug export 全体を dead-code 化
+// Next.js は process.env.NODE_ENV を build 時に静的置換するため、本定数経由の
+// gate は production bundle から完全消失する
+const IS_PRODUCTION = typeof process !== "undefined" && process.env?.NODE_ENV === "production";
+
 type Screen = "title" | "playing" | "handReveal" | "boss" | "clear" | "gameover" | "royalClear";
 
 export default function Game() {
@@ -276,9 +281,11 @@ export default function Game() {
       if (cur !== "playing" && cur !== "boss") return;
       update(g);
       render(g, ctx, livesRef.current);
-      // v2 Sprint 2 Commit 5: e2e 動的検証用に game state と FPS counter を window 経由で公開
-      // (debug=1 のみ。production NODE_ENV では `?bossHpScale` と同様に gate される)
-      if (debugOn && typeof window !== "undefined") {
+      // v2 Sprint 2 Audit 2 fix: e2e 動的検証用 window 公開
+      // 二重 gate: (1) production NODE_ENV では IS_PRODUCTION で常に false (dead-code)
+      //            (2) dev/test では debug=1 URL param 必須
+      // → production bundle に __gs / __fpsFrame は決して露出しない
+      if (!IS_PRODUCTION && debugOn && typeof window !== "undefined") {
         (window as Window & { __gs?: GameState }).__gs = g;
         const w = window as Window & { __fpsFrame?: number };
         w.__fpsFrame = (w.__fpsFrame ?? 0) + 1;
