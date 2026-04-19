@@ -51,6 +51,7 @@ export function spawnChipBurst(
   for (let i = 0; i < count; i++) {
     if (g.chipParticles.length >= max) {
       // 上限到達時は最古のものから drop
+      // 注: Array.shift は O(n) だが max <= 80 でホットパス性能影響なし
       g.chipParticles.shift();
     }
     const jitterX = (Math.random() - 0.5) * 12;

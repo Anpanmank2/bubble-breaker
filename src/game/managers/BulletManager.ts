@@ -2,8 +2,7 @@ import { GameState, CANVAS_W, CANVAS_H, addParticles, addFloatingText } from "..
 import { getEnemyColor } from "../stages/enemyStats";
 import { hpToPlayerStack } from "../boss/bossPhases";
 import { spawnChipBurst } from "../effects/chipParticles";
-
-const CHIP_LEADER_STAGE = 4;
+import { CHIP_LEADER_STAGE } from "../stages/stageConfig";
 const CHIPS_PER_HIT_MIN = 3;
 const CHIPS_PER_HIT_MAX = 5;
 

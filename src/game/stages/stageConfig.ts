@@ -12,6 +12,10 @@ export type StageConfig = {
   remaining: number;
 };
 
+// Sprint 3 Track D LOW-2: CHIP LEADER ステージ番号を stageConfig に集約
+// BossManager / BulletManager など複数箇所で重複定義されていたのを一箇所に
+export const CHIP_LEADER_STAGE = 4;
+
 export const STAGE_CONFIGS: Record<1 | 2 | 3 | 4, StageConfig> = {
   1: { name: "EARLY LEVEL",  blind: "100/200",    bg: "#1a472a", enemySpeed: 0.8, enemyHp: 1, spawnRate: 90, bulletSpeed: 1.8, cardDrops: 12, bossHp: 80,   bossName: "DONK BET KING",    remaining: 247 },
   2: { name: "MIDDLE LEVEL", blind: "500/1000",   bg: "#1a3a2a", enemySpeed: 1.5, enemyHp: 2, spawnRate: 60, bulletSpeed: 2.8, cardDrops: 10, bossHp: 300,  bossName: "3-BET MONSTER",    remaining: 84 },

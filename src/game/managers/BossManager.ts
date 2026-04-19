@@ -7,8 +7,7 @@ import {
 } from "../boss/bossPhases";
 import { readFxConfig } from "../effects/fxConfig";
 import { spawnPhaseTransition } from "../effects/phaseTransition";
-
-const CHIP_LEADER_STAGE = 4;
+import { CHIP_LEADER_STAGE } from "../stages/stageConfig";
 
 // v2 Sprint 2 Commit 2: Phase 別 shoot パラメータ (CHIP LEADER 戦のみ)
 type ShootParams = {

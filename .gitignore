@@ -45,3 +45,7 @@ next-env.d.ts
 /test-results
 /smoke-screenshots
 /e2e/screenshots
+
+# QA Phase 6 outputs (large videos / per-run logs)
+/qa/reports
+/qa/videos

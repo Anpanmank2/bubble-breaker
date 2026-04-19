@@ -1,4 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
+import { __test__ as chipParticlesTest } from "../src/game/effects/chipParticles";
 
 // v2 Sprint 2 Commit 5: スタックバー HUD 数値 + チップパーティクル吸い込み + 初期 state リーク確認
 // 動的検証: 中間 Audit #5 + #7 をカバー
@@ -163,9 +164,9 @@ test("13-C chip particles spawn on phase transition with to-player target", asyn
   // Phase 転換時の chipBurst で 20 粒以上 spawn されているはず
   expect(observed.maxLen).toBeGreaterThanOrEqual(15);
   expect(observed.toPlayerCount).toBeGreaterThan(0);
-  // target は constants で固定: PLAYER_HUD_TARGET_X=240, PLAYER_HUD_TARGET_Y=580
+  // target は chipParticles の定数から参照 (Sprint 3 Track D LOW 新規: ハードコード除去)
   for (const s of observed.samples.filter((p) => p.kind === "to-player")) {
-    expect(s.tx).toBe(240);
-    expect(s.ty).toBe(580);
+    expect(s.tx).toBe(chipParticlesTest.PLAYER_HUD_TARGET_X);
+    expect(s.ty).toBe(chipParticlesTest.PLAYER_HUD_TARGET_Y);
   }
 });

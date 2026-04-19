@@ -26,16 +26,32 @@ const DEFAULT_FX = {
 
 export type FxConfig = { [K in keyof typeof DEFAULT_FX]: number };
 
+// Sprint 3 Track D MEDIUM-1: search 文字列をキーに memoize。
+// 60fps × 2 箇所 (BossManager updateChipLeaderStack / checkOneOuter) で毎フレーム呼ばれるため
+// 毎回 new URLSearchParams() するコストを回避する。
+// ゲーム実行中 URL param は変化しないため cache 不整合は発生しない。
+const fxConfigCache = new Map<string, FxConfig>();
+
 /**
  * URL search params から FX 設定を読み取る
  * 指定なしはデフォルト値
  * ?fxDuration=X で全演出時間を一括上書き（デバッグ用）
  */
 export function readFxConfig(search: string): FxConfig {
+  const cached = fxConfigCache.get(search);
+  if (cached !== undefined) return cached;
   const params = new URLSearchParams(search);
   const fxDurationOverride = params.get("fxDuration");
   const fxAll = fxDurationOverride !== null ? parseInt(fxDurationOverride, 10) : null;
 
+  /**
+   * URL param から数値を読み取る。
+   * @param key URL param 名
+   * @param defaultValue 未指定時のデフォルト
+   * @param isFraction true なら分数系 (0-1 範囲、例: oneOuterThreshold, stackLerp)。
+   *                   fxDuration 一括上書きから除外されるため、ms 系 param とは分離する必要がある
+   *                   (memory `feedback_spec_url_param_side_effects.md`: fxDuration=0 で phaseImmuneMs まで 0 化する副作用を回避)
+   */
   const readNum = (key: string, defaultValue: number, isFraction = false): number => {
     const v = params.get(key);
     if (v === null) {
@@ -46,7 +62,7 @@ export function readFxConfig(search: string): FxConfig {
     return isNaN(n) ? defaultValue : n;
   };
 
-  return {
+  const result: FxConfig = {
     evenStackMs: readNum("evenStackMs", DEFAULT_FX.evenStackMs),
     chipLeadChangeMs: readNum("chipLeadChangeMs", DEFAULT_FX.chipLeadChangeMs),
     allInChipMs: readNum("allInChipMs", DEFAULT_FX.allInChipMs),
@@ -58,6 +74,8 @@ export function readFxConfig(search: string): FxConfig {
     stackLerp: readNum("stackLerp", DEFAULT_FX.stackLerp, true),
     phaseImmuneMs: readNum("phaseImmuneMs", DEFAULT_FX.phaseImmuneMs),
   };
+  fxConfigCache.set(search, result);
+  return result;
 }
 
 /**
