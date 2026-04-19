@@ -19,7 +19,6 @@ import { render } from "@/game/engine/Renderer";
 import { evaluateHand, HandResult } from "@/game/hand/evaluateHand";
 import { totalCardValue } from "@/game/hand/totalCardValue";
 import { getRealtimePower } from "@/game/hand/getRealtimePower";
-import { randomCardForStage } from "@/game/hand/stagePool";
 import { HAND_COLORS, HAND_NAMES } from "@/game/hand/constants";
 import {
   readForcedHand, readForcedStage, readDebugFlag, readQuickFlag, buildForcedHand,
@@ -82,6 +81,7 @@ export default function Game() {
 
   const startStage = useCallback((sn: number) => {
     setStageNum(sn);
+    setLives(3); // v2 Sprint 2 Commit 4+1: ステージ開始時にライフ全回復 (Owner 提案)
     setCollectedCards([]);
     setHand(null);
     const g = initGame(sn);
@@ -176,12 +176,12 @@ export default function Game() {
 
         if (g.stageTimer >= g.collectDuration) {
           // Determine the showdown hand. Forced override wins if provided.
+          // v2 Sprint 2 Commit 4+1: 拾ったカードのみで役判定 (補完禁止)
+          // 5 枚未満の場合、evaluateHand が HIGH_CARD / mult=1.0 を返す
           let cards = g.collectedCards.slice(0, 5);
           if (forcedKey) {
             const forced = buildForcedHand(forcedKey);
             if (forced) cards = forced;
-          } else {
-            while (cards.length < 5) cards.push(randomCardForStage(g.stageNum));
           }
           const result = evaluateHand(cards);
           const val = totalCardValue(cards);
