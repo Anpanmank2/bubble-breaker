@@ -2,7 +2,8 @@ import { GameState, CANVAS_W, CANVAS_H, CARD_SIZE, PLAYER_SIZE } from "../state/
 import { getEnemyColor, getEnemyLabel } from "../stages/enemyStats";
 import { evaluateHand } from "../hand/evaluateHand";
 import { HAND_COLORS, HAND_NAMES } from "../hand/constants";
-import { STACK_BAR_COLORS, PHASE_TRANSITION_TEXT } from "../characters/constants";
+import { STACK_BAR_COLORS, PHASE_TRANSITION_TEXT, ONE_OUTER_TEXT } from "../characters/constants";
+import { drawChipLeader } from "../boss/chipLeaderFx";
 
 export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: number) {
   ctx.save();
@@ -97,14 +98,19 @@ export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: numbe
   // Boss
   if (g.boss) {
     const b = g.boss;
-    const gradient = ctx.createRadialGradient(b.x + 25, b.y + 25, 5, b.x + 25, b.y + 25, 35);
-    gradient.addColorStop(0, "#ffd700");
-    gradient.addColorStop(1, "#ff4444");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(b.x, b.y, b.w, b.h);
-    ctx.strokeStyle = "#fff";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(b.x, b.y, b.w, b.h);
+    // v2 Sprint 2 Commit 3: Stage 4 CHIP LEADER は専用 11 レイヤー描画に差し替え
+    if (g.stageNum === 4 && b.chipLeaderPhase !== undefined) {
+      drawChipLeader(ctx, b, g.stageTimer);
+    } else {
+      const gradient = ctx.createRadialGradient(b.x + 25, b.y + 25, 5, b.x + 25, b.y + 25, 35);
+      gradient.addColorStop(0, "#ffd700");
+      gradient.addColorStop(1, "#ff4444");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(b.x, b.y, b.w, b.h);
+    }
     ctx.fillStyle = "#ffd700";
     ctx.font = "bold 10px monospace";
     ctx.textAlign = "center";
@@ -234,7 +240,53 @@ export function render(g: GameState, ctx: CanvasRenderingContext2D, lives: numbe
     drawPhaseTransition(g, ctx);
   }
 
+  // v2 Sprint 2 Commit 3: ワンアウター演出オーバーレイ (Stage 3 SLOW PLAYER GOD)
+  if (g.oneOuterSequence) {
+    drawOneOuterOverlay(g, ctx);
+  }
+
   ctx.restore();
+}
+
+// v2 Sprint 2 Commit 3: ワンアウター 2000ms 演出
+// t=0-20%: 画面暗転 alpha 0→0.85 (gameplay-design §3-2)
+// t=20%-30%: テキスト表示開始 + ボス高笑い
+// t=30%-70%: HP 回復アニメ (BossManager 側で hp は即回復済み、視覚演出のみ)
+// t=70%-90%: テキスト fadeout
+// t=90%-100%: 暗転 fadeout
+function drawOneOuterOverlay(g: GameState, ctx: CanvasRenderingContext2D) {
+  if (!g.oneOuterSequence) return;
+  const { life, maxLife } = g.oneOuterSequence;
+  const progress = 1 - life / maxLife; // 0 → 1
+
+  // 暗転 alpha: 0→0.85 (0-20%), hold (20-90%), 0.85→0 (90-100%)
+  let darkAlpha = 0;
+  if (progress < 0.2) darkAlpha = (progress / 0.2) * 0.85;
+  else if (progress < 0.9) darkAlpha = 0.85;
+  else darkAlpha = (1 - progress) / 0.1 * 0.85;
+
+  ctx.save();
+  ctx.globalAlpha = darkAlpha;
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  ctx.restore();
+
+  // テキスト表示 (20-90%)
+  if (progress >= 0.2 && progress < 0.9) {
+    let textAlpha = 1;
+    if (progress < 0.3) textAlpha = (progress - 0.2) / 0.1;
+    else if (progress > 0.7) textAlpha = (0.9 - progress) / 0.2;
+    ctx.save();
+    ctx.globalAlpha = textAlpha;
+    ctx.fillStyle = ONE_OUTER_TEXT.color;
+    ctx.font = `bold ${ONE_OUTER_TEXT.fontSize}px monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.shadowColor = ONE_OUTER_TEXT.color;
+    ctx.shadowBlur = 15;
+    ctx.fillText(ONE_OUTER_TEXT.text, CANVAS_W / 2, CANVAS_H / 2);
+    ctx.restore();
+  }
 }
 
 function drawChipParticles(g: GameState, ctx: CanvasRenderingContext2D) {

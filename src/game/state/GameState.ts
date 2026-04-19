@@ -63,7 +63,6 @@ export type Boss = {
   hp: number; maxHp: number;
   shootTimer: number;
   sinOffset: number;
-  phase: number;
   // v2 Sprint 2: CHIP LEADER 戦用
   stackBB?: number;
   chipLeaderPhase?: BossPhase;
@@ -73,6 +72,9 @@ export type Boss = {
   sunglassesY?: number;
   sunglassesRotation?: number;
   sunglassesAlpha?: number;
+  // Commit 3: サングラス吹っ飛びアニメ動力 (放物線)
+  sunglassesVy?: number;
+  sunglassesBlowoffLife?: number;
 };
 
 export type PhaseTransitionKind = "EVEN_STACK" | "CHIP_LEAD_CHANGE" | "ALL_IN_CHIP" | "ALL_IN_3BET";
@@ -134,6 +136,16 @@ export type GameState = {
   // v2 Sprint 2 Commit 2: phaseTransition 中の被弾無効残フレーム
   phaseImmuneRemain?: number;
   chipParticles?: ChipParticle[];
+  // v2 Sprint 2 Commit 3: SLOW PLAYER GOD ワンアウター演出シーケンス (2000ms)
+  oneOuterSequence?: OneOuterSequence;
+};
+
+// v2 Sprint 2 Commit 3: ワンアウター演出状態
+// t=0-400ms 画面暗転 / t=400-600 テキスト表示 / t=600-1400 HP回復アニメ
+// t=1400-1800 フェード / t=1800-2000 BGM 復帰
+export type OneOuterSequence = {
+  life: number;
+  maxLife: number;
 };
 
 export function createGameState(stageNum: number, cfg: StageConfig): GameState {
