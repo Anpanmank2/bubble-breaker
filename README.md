@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BUBBLE BREAKER
 
-## Getting Started
+「BUBBLE BREAKER — JOPT Game Arcade」として公開しているブラウザミニゲーム（Next.js製）。ボス戦付きのステージクリア型で、クリア時にクーポン発行APIと連携する。
 
-First, run the development server:
+## スタック
+- Next.js 16.2.4 / React 19.2.4 / TypeScript / Tailwind v4
+- Vercel KV
+- Vitest（unit）+ Playwright（e2e）
+
+## 主要ディレクトリ
+| パス | 役割 |
+|---|---|
+| `src/game/engine/` | ゲームループ・描画エンジン |
+| `src/game/stages/` | ステージ構成・敵ステータス |
+| `src/game/boss/` | ボス演出・フェーズ制御 |
+| `src/game/managers/` `src/game/state/` `src/game/effects/` `src/game/characters/` `src/game/hand/` | ゲームロジック各モジュール |
+| `src/lib/kv/` | Vercel KV連携 |
+| `src/lib/share/` | 結果シェア機能 |
+| `src/app/api/coupons/issue/` | クリア時クーポン発行API |
+| `src/app/api/share/` | シェアAPI |
+| `qa/` | QA用ペルソナ自動プレイシミュレーション |
+| `e2e/` | Playwright e2eテスト（2026-09-03時点 17本） |
+| `src/tests/` | vitest ユニットテスト（2026-09-03時点 13本） |
+
+## セットアップ
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## テスト
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm test      # vitest run
+npm run e2e   # playwright test
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## デプロイ
+Vercel。GitHub: Anpanmank2/bubble-breaker（**public**・2026-09-03時点 `gh repo view` 確認）。
